@@ -11,7 +11,7 @@ Authors: Alberto Zerbinati, Marco Sedusi, Marco Calì
   - Run it with `docker run -it sports-human-detection`
   - Docker was used during development and we think it's a great way to distribute the code. The following steps assume you are using a 
 correctly configured environment in terms of C++, OpenCV, cmake, etc.
-- (*optional*) If you want to **train you own model** with our dataset:
+- (*optional*) If you want to **train you own model** on our dataset:
   - Download the **raw dataset** from https://drive.google.com/file/d/1OEn1nHN4T0PdysuzRUNyqhGtnbWjI-UB/view
   - **Extract** all images in the `data/images` folder
   - `pip install -r requirements.txt` (create a virtual environment if you desire)
