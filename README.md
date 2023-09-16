@@ -1,7 +1,8 @@
 # Sports Human Detection
-Compiuter Vision project for the detection of humans in sports images.
+A.Y. 2022-2023 - unipd - Computer Vision project
 
-A.Y. 2022-2023
+Detection of players and field in sport images.
+
 Authors: Alberto Zerbinati, Marco Sedusi, Marco Calì
 
 ## Usage
