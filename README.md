@@ -24,3 +24,6 @@ correctly configured environment in terms of C++, OpenCV, cmake, etc.
   - [LibTorch](https://pytorch.org/get-started/locally/) — 
   We used this version: [link to download](https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.0.1%2Bcpu.zip). Extract the folder in the root of the project and adjust the `CMakeLists.txt` file accordingly.
 - ... ⚙️ **Build** & **Launch** ⚙️ ...
+
+## Report
+Ask for permission [here](https://docs.google.com/document/d/1_8SdJ6yfRL37Bn0gcs749Rhd29lRVZCEUC0VRQvNA3Y/edit#heading=h.5wxqaqinvaq4).
