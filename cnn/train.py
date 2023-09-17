@@ -41,7 +41,7 @@ def train_model(save_model=False, model_path="models/people_detection_model.pt")
 
     # Loss function and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=3e-5)
+    optimizer = optim.Adam(model.parameters(), lr=2e-5)
     # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
     # Number of epochs
@@ -78,13 +78,17 @@ def train_model(save_model=False, model_path="models/people_detection_model.pt")
 
     # Save the model
     if save_model:
+        # Set the model so it can be saved in evaluation mode and used on CPU
+        model.eval()
+        model.cpu()
+
         # Save for python usage
         torch.save(model.state_dict(), model_path + "h")
 
         # Save for C++ usage
         example = torch.rand(1, 3, 100, 100)
         traced_script_module = torch.jit.trace(model, example)
-        traced_script_module.save("models/people_detection_model.pt")
+        traced_script_module.save(model_path)
 
         print(f"Model saved to {model_path}")
 
