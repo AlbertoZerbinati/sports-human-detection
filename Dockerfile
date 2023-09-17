@@ -36,3 +36,5 @@ RUN source ~/.bashrc
 # Copy the application files into the image. 
 WORKDIR /workspace
 COPY . .
+
+# missing: unzip, wget, python, pip, ...
