@@ -4,6 +4,9 @@
 build/
 opencv_build/
 
+# VSCode files
+.vscode/
+
 # Zip files
 *.zip
 
