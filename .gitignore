@@ -3,12 +3,18 @@
 *.out
 build/
 
+# Zip files
+*.zip
+
 # Dataset
 data/*
 !data/data_processing
 data/data_processing/*
 !data/data_processing/*.sh
 !data/data_processing/*.py
+
+# Torch for C++
+libtorch
 
 # Python stuff
 __pycache__/
