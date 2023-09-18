@@ -1,10 +1,4 @@
-#include "../include/utils.h"
-
-bool file_exists(const string &filename)
-{
-    ifstream file(filename.c_str());
-    return file.good();
-}
+#include "../../include/field-detection/FieldSegmentation.hpp"
 
 String get_image_path(String filename)
 {

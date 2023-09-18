@@ -5,7 +5,6 @@
 #include <opencv2/ml.hpp>
 #include <chrono>
 #include <vector>
-#include <fstream>
 
 using namespace std;
 using namespace cv;
@@ -22,7 +21,6 @@ struct PixelInfo
     int group;   // The group the pixel belongs to (0, 1, or 2)
 };
 
-bool file_exists(const string &filename);
 String get_image_path(String filename);
 void preprocessing(const Mat &src, Mat &dst, const double alpha_e);
 void green_chromaticity_analysis(const cv::Mat &src, cv::Mat &dst);
