@@ -24,9 +24,9 @@ void PeopleDetector::loadModel(const std::string& model_path) {
 
 std::vector<DetectedWindow> PeopleDetector::detectPeople(const cv::Mat& image) {
     // Define hyperparameters
-    const std::vector<float>& scales{1};  // 0.4, 0.7, 1
-    const float gamma{1000};
-    const float delta{30};
+    const std::vector<float>& scales{0.8, 1.2};  // 0.4, 0.7, 1
+    const float gamma{2};
+    const float delta{1.3};
 
     std::vector<DetectedWindow> best_windows;             // Best windows so far
     float best_loss = std::numeric_limits<float>::max();  // Best loss so far
@@ -45,67 +45,70 @@ std::vector<DetectedWindow> PeopleDetector::detectPeople(const cv::Mat& image) {
         std::cout << "Number of detected windows at scale " << scale << ": "
                   << num_windows << std::endl;
 
-        int max = std::min(num_windows, 11);
+        int max_classes = std::min(num_windows, 11);
 
-        best_windows = detected_windows;
+        // best_windows = detected_windows;
 
         // Perform K-means clustering on detected windows to remove duplicates
-        // for (int k = 1; k <= max; ++k) {
-        //     // Extract the centers of the detected windows
-        //     std::vector<cv::Point2f> centers;
-        //     for (const auto& win : detected_windows) {
-        //         cv::Point2f center((win.x + win.w) / 2.0,
-        //                            (win.y + win.h) / 2.0);
-        //         centers.push_back(center);
-        //     }
+        for (int k = 1; k <= max_classes; ++k) {
+            // Extract the centers of the detected windows
+            std::vector<cv::Point2f> centers;
+            for (const auto& win : detected_windows) {
+                cv::Point2f center((win.x + win.w) / 2.0,
+                                   (win.y + win.h) / 2.0);
+                centers.push_back(center);
+            }
 
-        //     // Perform K-means clustering
-        //     std::pair<std::vector<int>, float> labelsAndLoss;
-        //     labelsAndLoss = performKMeans(centers, k);
+            // Perform K-means clustering
+            std::pair<std::vector<int>, float> labelsAndLoss;
+            labelsAndLoss = performKMeans(centers, k);
 
-        //     std::vector<int> labels = labelsAndLoss.first;
-        //     float loss = labelsAndLoss.second;
+            std::vector<int> labels = labelsAndLoss.first;
+            float loss = labelsAndLoss.second;
 
-        //     // Compute weighted loss for each cluster and select the best ones
-        //     float weighted_loss =
-        //         computeWeightedLoss(loss, scale, k, gamma, delta);
+            // Compute weighted loss for each cluster and select the best ones
+            float weighted_loss =
+                computeWeightedLoss(loss, scale, k, gamma, delta);
 
-        //     if (weighted_loss < best_loss) {
-        //         best_loss = weighted_loss;
-        //         best_labels = labels;
-        //         best_windows = detected_windows;
-        //         best_scale = scale;
-        //     }
-        // }
+            if (weighted_loss < best_loss) {
+                best_loss = weighted_loss;
+                best_labels = labels;
+                best_windows = detected_windows;
+                best_scale = scale;
+
+                std::cout << "New best loss for k " << k << " :" << best_loss
+                          << std::endl;
+            }
+        }
     }
 
     // Finally: for each cluster in the best clustering, select the best
     // window of that cluster.
-    std::vector<DetectedWindow> predicted_boxes = best_windows;
-    // std::set<int> unique_labels(best_labels.begin(), best_labels.end());
+    std::vector<DetectedWindow> predicted_boxes;
+    std::set<int> unique_labels(best_labels.begin(), best_labels.end());
 
-    // for (const auto& label : unique_labels) {
-    //     std::vector<DetectedWindow> cluster_windows;
+    for (const auto& label : unique_labels) {
+        std::vector<DetectedWindow> cluster_windows;
 
-    //     // Filter windows that have the current label
-    //     for (size_t i = 0; i < best_windows.size(); ++i) {
-    //         if (best_labels[i] == label) {
-    //             cluster_windows.push_back(best_windows[i]);
-    //         }
-    //     }
+        // Filter windows that have the current label
+        for (size_t i = 0; i < best_windows.size(); ++i) {
+            if (best_labels[i] == label) {
+                cluster_windows.push_back(best_windows[i]);
+            }
+        }
 
-    //     // Sort by confidence
-    //     std::sort(cluster_windows.begin(), cluster_windows.end(),
-    //               [](const DetectedWindow& a, const DetectedWindow& b) {
-    //                   return a.confidence > b.confidence;
-    //               });
+        // Sort by confidence
+        std::sort(cluster_windows.begin(), cluster_windows.end(),
+                  [](const DetectedWindow& a, const DetectedWindow& b) {
+                      return a.confidence > b.confidence;
+                  });
 
-    //     // Choose the box with the highest confidence
-    //     if (!cluster_windows.empty()) {
-    //         DetectedWindow best_window = cluster_windows[0];
-    //         predicted_boxes.push_back(best_window);
-    //     }
-    // }
+        // Choose the box with the highest confidence
+        if (!cluster_windows.empty()) {
+            DetectedWindow best_window = cluster_windows[0];
+            predicted_boxes.push_back(best_window);
+        }
+    }
 
     return predicted_boxes;
 }
@@ -115,12 +118,14 @@ std::vector<DetectedWindow> PeopleDetector::performSlidingWindow(
     std::vector<DetectedWindow> detected_windows;
 
     // Resize the image based on the scale
-    cv::Mat resized_image;
-    cv::resize(image, resized_image, cv::Size(), scale, scale);
+    // cv::Mat resized_image;
+    // cv::resize(image, resized_image, cv::Size(), scale, scale);
 
-    // Define window size and step size
-    int window_width = 128;
-    int window_height = 256;
+    // Define window size and step size based on image w and h
+    float base_window_width = float(image.cols) / 5.0;
+    float base_window_height = float(image.rows) / 3.0;
+    int window_width = int(base_window_width * scale);
+    int window_height = int(base_window_height * scale);
     int step_size = 50;
 
     // save the resized image with a rectangle of the size for inspection
@@ -133,13 +138,12 @@ std::vector<DetectedWindow> PeopleDetector::performSlidingWindow(
 
     float confidence_threshold = 0.85;  // Set your confidence threshold here
 
-    for (int x = 0; x <= resized_image.cols - window_width; x += step_size) {
-        for (int y = 0; y <= resized_image.rows - window_height;
-             y += step_size) {
-            cv::Mat resized_copy = resized_image.clone();
+    for (int x = 0; x <= image.cols - window_width; x += step_size) {
+        for (int y = 0; y <= image.rows - window_height; y += step_size) {
+            cv::Mat image_copy = image.clone();
             cv::Rect window(x, y, window_width, window_height);
 
-            cv::Mat crop = resized_copy(window);
+            cv::Mat crop = image_copy(window);
 
             torch::Tensor crop_tensor;
             if (!ImageToTensor(crop, crop_tensor)) {
@@ -174,7 +178,8 @@ std::vector<DetectedWindow> PeopleDetector::performSlidingWindow(
                 win.confidence = *max_prob;
 
                 detected_windows.push_back(win);
-                // std::cout << "Detected window: " << win.x << " " << win.y << " "
+                // std::cout << "Detected window: " << win.x << " " << win.y <<
+                // " "
                 //           << win.w << " " << win.h << " " << win.confidence
                 //           << std::endl;
             }
@@ -283,8 +288,8 @@ std::pair<std::vector<int>, float> PeopleDetector::performKMeans(
 
 float PeopleDetector::computeWeightedLoss(float kmeansLoss, float scale, int k,
                                           float gamma, float delta) {
-    double scalePenalty = gamma * std::pow(scale, 2);
-    double kPenalty = delta * std::pow(k, 2);
+    double scalePenalty = kmeansLoss / 10 * gamma / std::pow(scale, 1);
+    double kPenalty = kmeansLoss / 10 * delta * std::pow(k, 1);
     double loss = kmeansLoss + scalePenalty + kPenalty;
     std::cout << "kmeansLoss: " << kmeansLoss
               << " scalePenalty: " << scalePenalty << " kPenalty: " << kPenalty

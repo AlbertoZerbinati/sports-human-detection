@@ -35,7 +35,11 @@ int main(int argc, char** argv) {
     }
 
     // Save the image with detected windows
-    cv::imwrite("Detected_People.jpg", test_image);
+    std::string output_image_path = argv[2];
+    output_image_path =
+        output_image_path.substr(output_image_path.find_last_of("/") + 1);
+
+    cv::imwrite(output_image_path, test_image);
 
     return 0;
 }
