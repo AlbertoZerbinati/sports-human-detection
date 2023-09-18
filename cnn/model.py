@@ -13,7 +13,7 @@ class PeopleDetectionCNN(nn.Module):
         self.device = device
 
         # Adding resnet
-        resnet34 = models.resnet34(pretrained=True)
+        resnet34 = models.resnet34(weights=models.ResNet34_Weights.DEFAULT)
         # Removing last fully connected layer
         self.resnet = torch.nn.Sequential(*(list(resnet34.children())[:-1]))
         self.resnet = self.resnet.to(device)

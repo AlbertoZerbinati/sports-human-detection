@@ -4,25 +4,44 @@ from model import PeopleDetectionCNN
 from PIL import Image, ImageDraw
 
 # Load the model
-model = PeopleDetectionCNN("cuda")
-model.load_state_dict(torch.load("models/people_detection_model.pth"))
+model = PeopleDetectionCNN("cpu")
+model.load_state_dict(torch.load("models/people_detection_model_normalize.pth"))
 model.eval()
 
 # Load image
 image = Image.open("data/Sport_scene_dataset/Images/im1.jpg")
+image = Image.open("data/dataset/test/positive/SCR-20230907-pjed_crop_1050_.jpeg")
 
 # Preprocessing
 transform = transforms.Compose(
     [
         transforms.Resize((100, 100)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
 
 # Sliding window parameters
 d = min(image.size[0], image.size[1]) / 5
-window_size = (int(d), int(d * 5 / 3))
-step_size = int(d / 8)
-scales = [0.6]
+window_size = (128, 256)
+step_size = 20
+scales = [1]
+
+input = torch.ones(1, 3, 100, 100)
+output = model(input)
+
+print(output.data)
+
+output = model(transform(image).unsqueeze(0))
+confidence, predicted = torch.max(output.data, 0)
+confidence = confidence.item()
+predicted = predicted.item()
+
+print(output.data)
+
+import sys
+
+sys.exit()
 
 # Counter for naming files
 counter = 0
@@ -41,10 +60,7 @@ for scale in scales:
             window = image.crop(
                 (x, y, int(x + window_size[0] * scale), int(y + window_size[1] * scale))
             )
-            window = transform(window)
-            window_tensor = transforms.ToTensor()(window).unsqueeze(
-                0
-            )  # Add batch dimension
+            window_tensor = transform(window).unsqueeze(0)  # Add batch dimension
 
             # Make prediction
             with torch.no_grad():
@@ -73,6 +89,7 @@ for scale in scales:
                 counter += 1
                 print(counter, f"-> confidence: {confidence:.2f}, scale: {scale}")
 
+print("Number of detected windows:", len(detected_windows))
 
 # Sliding window parameters
 scales = [0.8]
@@ -84,10 +101,7 @@ for scale in scales:
             window = image.crop(
                 (x, y, int(x + window_size[0] * scale), int(y + window_size[1] * scale))
             )
-            window = transform(window)
-            window_tensor = transforms.ToTensor()(window).unsqueeze(
-                0
-            )  # Add batch dimension
+            window_tensor = transform(window).unsqueeze(0)  # Add batch dimension
 
             # Make prediction
             with torch.no_grad():

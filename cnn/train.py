@@ -1,4 +1,5 @@
 import argparse
+from ast import mod
 
 import cv2
 import numpy as np
@@ -23,6 +24,7 @@ def train_model(save_model=False, model_path="models/people_detection_model.pt")
             ),
             transforms.Resize((100, 100)),
             transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
 
@@ -78,17 +80,22 @@ def train_model(save_model=False, model_path="models/people_detection_model.pt")
 
     # Save the model
     if save_model:
-        # Set the model so it can be saved in evaluation mode and used on CPU
-        model.eval()
-        model.cpu()
-
         # Save for python usage
         torch.save(model.state_dict(), model_path + "h")
 
-        # Save for C++ usage
-        example = torch.rand(1, 3, 100, 100)
+        # Reload the model from path
+        model = PeopleDetectionCNN("cpu")
+        model.load_state_dict(
+            torch.load(model_path + "h", map_location=torch.device("cpu"))
+        )
+
+        model.eval()
+        example = torch.ones(1, 3, 100, 100)
         traced_script_module = torch.jit.trace(model, example)
         traced_script_module.save(model_path)
+
+        # print the example output for reference with the cpp model
+        print(model(example))
 
         print(f"Model saved to {model_path}")
 
@@ -97,13 +104,9 @@ def test_model(model):
     # Define transformations
     transform = transforms.Compose(
         [
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomVerticalFlip(p=0.5),
-            transforms.RandomAffine(
-                degrees=30, translate=(0.1, 0.1), scale=(0.8, 1.2), shear=7, fill=255
-            ),
             transforms.Resize((100, 100)),
             transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
 
@@ -134,7 +137,11 @@ def save_annotated_images(model, save_path="output"):
     just for debugging
     """
     transform = transforms.Compose(
-        [transforms.Resize((100, 100)), transforms.ToTensor()]
+        [
+            transforms.Resize((100, 100)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
     )
     test_path = "data/dataset/test"
     test_dataset = PeopleDataset(test_path, transform=transform)
