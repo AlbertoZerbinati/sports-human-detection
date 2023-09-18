@@ -1,3 +1,5 @@
+# Alberto Zerbinati
+
 import csv
 
 import torchvision.transforms as transforms

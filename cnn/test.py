@@ -1,3 +1,5 @@
+# Alberto Zerbinati
+
 import torch
 import torchvision.transforms as transforms
 from model import PeopleDetectionCNN

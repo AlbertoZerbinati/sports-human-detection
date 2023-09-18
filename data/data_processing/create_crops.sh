@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Alberto Zerbinati
+
 # download yolov3 weights, names, and cfg
 wget https://pjreddie.com/media/files/yolov3.weights -O data/data_processing/yolov3.weights
 wget https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names -O data/data_processing/coco.names

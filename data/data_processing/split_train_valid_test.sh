@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Alberto Zerbinati
+
 # Function to create directories if they don't exist
 make_dir() {
     if [ ! -d "$1" ]; then
