@@ -28,7 +28,7 @@ correctly configured environment in terms of C++, OpenCV, cmake, etc.
   - `cmake ..`
   - `make`
 - **Run** the project 🚀
-  - `./sports-human-detection <image_path> <model_path>`
+  - `./sports_human_detection <image_path> <model_path>`
 
 ## Report
 Ask for permission [here](https://docs.google.com/document/d/1_8SdJ6yfRL37Bn0gcs749Rhd29lRVZCEUC0VRQvNA3Y/edit#heading=h.5wxqaqinvaq4).
