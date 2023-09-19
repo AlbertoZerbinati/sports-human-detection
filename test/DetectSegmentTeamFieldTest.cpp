@@ -3,6 +3,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+#include "field-detection/FieldSegmentation.hpp"
 #include "people-detection/PeopleDetector.hpp"
 #include "people-segmentation/PeopleSegmentation.hpp"
 #include "team-specification/TeamSpecification.hpp"
@@ -15,6 +16,13 @@ struct Player {
     int h;
     int team;
     cv::Vec3b color;
+};
+
+struct Vec3bCompare {
+    bool operator()(const cv::Vec3b& a, const cv::Vec3b& b) const {
+        // Your comparison logic here, for example:
+        return std::tie(a[0], a[1], a[2]) < std::tie(b[0], b[1], b[2]);
+    }
 };
 
 int main(int argc, char** argv) {
@@ -77,6 +85,10 @@ int main(int argc, char** argv) {
     // create a vector of players to hold the coordinates, team and color
     std::vector<Player> players;
 
+    // global color of field as a map which at each color assigns a counter
+    // to count the number of times that color is found
+    std::map<cv::Vec3b, int, Vec3bCompare> fieldColors;
+
     int i = 0;
     // for each detected window
     for (const auto& window : detected_windows) {
@@ -89,6 +101,41 @@ int main(int argc, char** argv) {
         // perform people segmentation
         cv::Mat people_segmentation_mat =
             people_segmentation.merger(window_mat);
+
+        // extract field color from the window by reverting the
+        // people_segmentation_mat (consider only the pixels which are black in
+        // the people_segmentation_mat) from the window_mat
+        cv::Mat field_mat = cv::Mat::zeros(window_mat.size(), CV_8UC3);
+        for (int y = 0; y < people_segmentation_mat.rows; ++y) {
+            for (int x = 0; x < people_segmentation_mat.cols; ++x) {
+                cv::Vec3b pixel = people_segmentation_mat.at<cv::Vec3b>(y, x);
+                if (pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 0) {
+                    field_mat.at<cv::Vec3b>(y, x) =
+                        window_mat.at<cv::Vec3b>(y, x);
+                }
+            }
+        }
+
+        // extract the dominant color of the field from the field_mat
+        cv::Vec3b fieldColor = TeamSpecification::findDominantColor(
+            field_mat, true, team1Color, team2Color, extraColor);
+
+        // check if any of the colors in the fieldColors map is similar to the
+        // fieldColor (with threshold 15) if so increment the counter of that
+        // color, otherwise add the fieldColor to the map with counter 1
+        bool found = false;
+        for (auto& pair : fieldColors) {
+            if (abs(pair.first[0] - fieldColor[0]) < 20 &&
+                abs(pair.first[1] - fieldColor[1]) < 20 &&
+                abs(pair.first[2] - fieldColor[2]) < 20) {
+                pair.second++;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            fieldColors.insert(std::pair<cv::Vec3b, int>(fieldColor, 1));
+        }
 
         // save the image with detected people
         // the output name is just the name of the image (substring after the
@@ -109,7 +156,7 @@ int main(int argc, char** argv) {
 
         // cout the colors
         cout << "Dominant Color:" << endl;
-        cout << "RGB: (" << (int)dominantColor[0] << ", "
+        cout << "BGR: (" << (int)dominantColor[0] << ", "
              << (int)dominantColor[1] << ", " << (int)dominantColor[2] << ")"
              << endl;
 
@@ -199,6 +246,36 @@ int main(int argc, char** argv) {
         i++;
         std::cout << std::endl;
     }
+
+    // now extract the most common color from the fieldColors map
+    int max = 0;
+    cv::Vec3b fieldColor;
+    for (auto& pair : fieldColors) {
+        if (pair.second > max) {
+            max = pair.second;
+            fieldColor = pair.first;
+        }
+    }
+
+    // create an image with the color to inspect it
+    cv::Mat fieldColorMat = cv::Mat::zeros(100, 100, CV_8UC3);
+    for (int y = 0; y < fieldColorMat.rows; ++y) {
+        for (int x = 0; x < fieldColorMat.cols; ++x) {
+            fieldColorMat.at<cv::Vec3b>(y, x) = fieldColor;
+        }
+    }
+    cv::imwrite("field_color.jpg", fieldColorMat);
+
+    // print the color
+    cout << "Field Color:" << endl;
+    cout << "BGR: (" << (int)fieldColor[0] << ", " << (int)fieldColor[1] << ", "
+         << (int)fieldColor[2] << ")" << endl;
+
+    // perform field segmentation
+    cv::Mat field_segmentation_mat = FieldSegmentation(test_image, fieldColor);
+
+    // Save the field segmentation image
+    cv::imwrite("field_segmentation.jpg", field_segmentation_mat);
 
     // Save the full-size segmentation image
     cv::imwrite("full_size_segmentation.jpg", full_size_segmentation);
