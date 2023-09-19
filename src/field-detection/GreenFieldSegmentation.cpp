@@ -1,4 +1,4 @@
-// Marco Calì
+// @author: Marco Calì
 
 #include "field-detection/GreenFieldSegmentation.hpp"
 
