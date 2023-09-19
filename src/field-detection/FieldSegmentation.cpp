@@ -1,6 +1,8 @@
-#include "../../include/field-detection/FieldSegmentation.hpp"
+// @author: Marco Calì
 
-Mat GreenFieldsSegmentation(const Mat &I /*, String filename*/)
+#include "/field_detection/green_field_segmentation.h"
+
+Mat GreenFieldsSegmentation(const Mat &I)
 {
     // White Lines Removal Through Opening Morphological Operator on the lower-resolution image
     Mat I_open;
@@ -72,8 +74,7 @@ Mat GreenFieldsSegmentation(const Mat &I /*, String filename*/)
     return mask2.clone();
 }
 
-
-Mat GenericFieldSegmentation(Mat &image, int from_row, int from_column, int row_width, int column_width, double mean_factor = 1, double std_factor = 1)
+Mat GenericFieldSegmentation(const Mat &image, const Vec3b estimated_color, double mean_factor = 1, double std_factor = 1)
 {
     // Convert to RG space
     Mat image_R = Mat::zeros(image.size(), CV_64F);
@@ -90,7 +91,12 @@ Mat GenericFieldSegmentation(Mat &image, int from_row, int from_column, int row_
     }
 
     // Set the patch value
-    Mat image_patch = image(Rect(from_row, from_column, row_width, column_width));
+    Mat image_patch = Mat(50, 50, CV_8UC3);
+    for (int y = 0; y < image_patch.rows; y++)
+        for (int x = 0; x < image_patch.cols; x++)
+            image_patch.at<Vec3b>(y, x) = estimated_color;
+
+    // Mat image_patch = image(Rect(from_row, from_column, row_width, column_width));
 
     // imshow("Patch", image_patch);
     // Convert patch to RG space
@@ -145,5 +151,22 @@ Mat GenericFieldSegmentation(Mat &image, int from_row, int from_column, int row_
     Mat mask;
     threshold(prob, mask, 0.1, 255, THRESH_BINARY);
 
+    int diameter = 7;
+    Size size = Size(diameter, diameter);
+    Mat element = getStructuringElement(MORPH_ELLIPSE, size);
+    morphologyEx(mask, mask, MORPH_OPEN, element);
+    return mask.clone();
+}
+
+Mat FieldSegmentation(const Mat &src, const Vec3b estimated_field_color)
+{
+    Mat mask;
+    int blue = estimated_field_color[0];
+    int green = estimated_field_color[1];
+    int red = estimated_field_color[2];
+    if (green > red and green > blue)
+        mask = GreenFieldsSegmentation(src);
+    else
+        mask = GenericFieldSegmentation(src, estimated_field_color);
     return mask.clone();
 }

@@ -1,4 +1,5 @@
-#include "../../include/field-detection/GreenFieldSegmentation.hpp"
+// @author: Marco Calì
+#include "/field-detection/GreenFieldSegmentation.hpp"
 
 String get_image_path(String filename)
 {
