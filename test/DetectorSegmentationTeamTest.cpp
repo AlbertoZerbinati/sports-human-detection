@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
         cv::imwrite(output_image_path, people_segmentation_mat);
 
         Vec3b dominantColor = TeamSpecification::findDominantColor(
-            people_segmentation_mat, team1Color, team2Color, extraColor);
+            people_segmentation_mat, false, team1Color, team2Color, extraColor);
 
         // cout the colors
         cout << "Dominant Color:" << endl;
