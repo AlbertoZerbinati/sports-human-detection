@@ -3,6 +3,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+#include "field-detection/FieldSegmentation.hpp"
 #include "people-detection/PeopleDetector.hpp"
 #include "people-segmentation/PeopleSegmentation.hpp"
 #include "team-specification/TeamSpecification.hpp"
@@ -267,10 +268,14 @@ int main(int argc, char** argv) {
 
     // print the color
     cout << "Field Color:" << endl;
-    cout << "BGR: (" << (int)fieldColor[0] << ", " << (int)fieldColor[1]
-         << ", " << (int)fieldColor[2] << ")" << endl;
+    cout << "BGR: (" << (int)fieldColor[0] << ", " << (int)fieldColor[1] << ", "
+         << (int)fieldColor[2] << ")" << endl;
 
+    // perform field segmentation
+    cv::Mat field_segmentation_mat = FieldSegmentation(test_image, fieldColor);
 
+    // Save the field segmentation image
+    cv::imwrite("field_segmentation.jpg", field_segmentation_mat);
 
     // Save the full-size segmentation image
     cv::imwrite("full_size_segmentation.jpg", full_size_segmentation);
