@@ -107,8 +107,8 @@ Mat PeopleSegmentation::peopleSegm(Mat original) {
 /*Function to merge results image obtained from skin-detection and people-segmentation into an unique image*/
 Mat PeopleSegmentation::merger(Mat original) {
     //temp vars
-    Mat temp_1 = Mat::zeros(src.cols, src.rows, CV_8UC3);
-    Mat temp_2 = Mat::zeros(src.cols, src.rows, CV_8UC3);
+    Mat temp_1 = Mat::zeros(original.cols, original.rows, CV_8UC3);
+    Mat temp_2 = Mat::zeros(original.cols, original.rows, CV_8UC3);
 
     //call function
     temp_1 = skinDetect(src);
@@ -121,6 +121,18 @@ Mat PeopleSegmentation::merger(Mat original) {
             temp_2.at<Vec3b>(i, j)[0] += temp_1.at<Vec3b>(i, j)[0];
             temp_2.at<Vec3b>(i, j)[1] += temp_1.at<Vec3b>(i, j)[1];
             temp_2.at<Vec3b>(i, j)[2] += temp_1.at<Vec3b>(i, j)[2];
+        }
+    }
+        
+     //clean the image after processing
+    for (int i = 0; i < original.rows; i++) {
+        for (int j = 0; j < original.cols; j++) {
+            if (!(temp_2.at<Vec3b>(i, j)[0] == 0 && temp_2.at<Vec3b>(i, j)[1] == 0 && temp_2.at<Vec3b>(i, j)[2] == 0)) {
+                temp_2.at<Vec3b>(i, j)[0] = original.at<Vec3b>(i, j)[0];
+                temp_2.at<Vec3b>(i, j)[1] = original.at<Vec3b>(i, j)[1];
+                temp_2.at<Vec3b>(i, j)[2] = original.at<Vec3b>(i, j)[2];
+            }
+            
         }
     }
     return temp_2;
