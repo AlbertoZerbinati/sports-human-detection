@@ -45,7 +45,7 @@ std::vector<DetectedWindow> PeopleDetector::detectPeople(const cv::Mat& image) {
         // std::cout << "Number of detected windows at scale " << scale << ": "
         //           << num_windows << std::endl;
 
-        int max_classes = std::min(num_windows, 11);
+        int max_classes = std::min(num_windows, 9);
 
         // best_windows = detected_windows;
 
