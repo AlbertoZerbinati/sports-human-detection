@@ -8,8 +8,10 @@
 #include <opencv2/ml.hpp>
 #include <vector>
 
-using namespace std;
-using namespace cv;
+using namespace std;  // TODO: remove this
+using namespace cv;   // TODO: remove this
+
+// TODO: make a class...
 
 struct LocalMinimum {
     double value;

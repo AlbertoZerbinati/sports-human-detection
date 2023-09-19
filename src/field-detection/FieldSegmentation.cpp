@@ -1,6 +1,8 @@
-// @author: Marco Calì
+// Marco Calì
 
-#include "field_detection/green_field_segmentation.h"
+#include "field-detection/GreenFieldSegmentation.hpp"
+
+// TODO: refactor into class
 
 Mat GreenFieldsSegmentation(const Mat &I) {
     // White Lines Removal Through Opening Morphological Operator on the
@@ -166,6 +168,28 @@ Mat GenericFieldSegmentation(const Mat &image, const Vec3b estimated_color,
     return mask.clone();
 }
 
+Mat ColorFieldSegmentation(const Mat &image, const Vec3b estimated_color) {
+    Mat mask = Mat::zeros(image.size(), CV_8U);
+    int threshold = 25;
+
+    // fill the mask with white  where the image pixels color is in threshold
+    // with the estimated color
+    for (int y = 0; y < image.rows; y++) {
+        for (int x = 0; x < image.cols; x++) {
+            if (abs(image.at<Vec3b>(y, x)[0] - estimated_color[0]) <
+                    threshold and
+                abs(image.at<Vec3b>(y, x)[1] - estimated_color[1]) <
+                    threshold and
+                abs(image.at<Vec3b>(y, x)[2] - estimated_color[2]) <
+                    threshold) {
+                mask.at<uchar>(y, x) = 255;
+            }
+        }
+    }
+
+    return mask.clone();
+}
+
 Mat FieldSegmentation(const Mat &src, const Vec3b estimated_field_color) {
     Mat mask;
     int blue = estimated_field_color[0];
@@ -174,6 +198,6 @@ Mat FieldSegmentation(const Mat &src, const Vec3b estimated_field_color) {
     if (green > red and green > blue)
         mask = GreenFieldsSegmentation(src);
     else
-        mask = GenericFieldSegmentation(src, estimated_field_color);
+        mask = ColorFieldSegmentation(src, estimated_field_color);
     return mask.clone();
 }
