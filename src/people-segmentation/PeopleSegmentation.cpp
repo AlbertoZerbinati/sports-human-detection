@@ -123,8 +123,7 @@ Mat PeopleSegmentation::merger(Mat original) {
             temp_2.at<Vec3b>(i, j)[2] += temp_1.at<Vec3b>(i, j)[2];
         }
     }
-    
-    
+        
      //clean the image after processing
     for (int i = 0; i < original.rows; i++) {
         for (int j = 0; j < original.cols; j++) {
