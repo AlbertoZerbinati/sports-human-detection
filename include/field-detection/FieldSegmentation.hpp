@@ -1,6 +1,6 @@
 // Marco Calì
 
-#include "../../include/field-detection/GreenFieldSegmentation.hpp"
+#include "field-detection/GreenFieldSegmentation.hpp"
 
 Mat GreenFieldsSegmentation(const Mat &I);
 Mat GenericFieldSegmentation(Mat &image, int from_row, int from_column,

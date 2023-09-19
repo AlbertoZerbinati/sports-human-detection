@@ -1,6 +1,6 @@
 // Marco Calì
 
-#include "../../include/field-detection/GreenFieldSegmentation.hpp"
+#include "field-detection/GreenFieldSegmentation.hpp"
 
 String get_image_path(String filename) {
     String dataset_path = "../assets/dataset/Images/";

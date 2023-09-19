@@ -1,6 +1,6 @@
 // Marco Calì
 
-#include "../../include/field-detection/FieldSegmentation.hpp"
+#include "field-detection/FieldSegmentation.hpp"
 
 Mat GreenFieldsSegmentation(const Mat &I /*, String filename*/) {
     // White Lines Removal Through Opening Morphological Operator on the
@@ -80,7 +80,7 @@ Mat GreenFieldsSegmentation(const Mat &I /*, String filename*/) {
 
 Mat GenericFieldSegmentation(Mat &image, int from_row, int from_column,
                              int row_width, int column_width,
-                             double mean_factor = 1, double std_factor = 1) {
+                             double mean_factor, double std_factor) {
     // Convert to RG space
     Mat image_R = Mat::zeros(image.size(), CV_64F);
     Mat image_G = Mat::zeros(image.size(), CV_64F);
