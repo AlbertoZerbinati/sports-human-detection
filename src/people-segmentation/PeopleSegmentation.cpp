@@ -89,7 +89,6 @@ Mat PeopleSegmentation::peopleSegm(Mat original) {
         Rect rect = Rect(x / 6, y / 9, x - (x / 4) - (x / 7), y - (y / 4));
         grabCut(original, mask, rect, bgdModel, fgdModel, 10,
                 GC_INIT_WITH_RECT);
-        cout << "i";
     }
     // Rect rect=Rect(5, 5, src.cols - 6, src.rows - 6);
     // grabCut(src, mask, rect, bgdModel, fgdModel, 10, GC_INIT_WITH_RECT);
