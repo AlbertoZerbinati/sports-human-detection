@@ -2,6 +2,10 @@
 
 #include "utils/Utils.hpp"
 
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
 namespace Utils {
 
 bool Vec3bCompare::operator()(const cv::Vec3b& a, const cv::Vec3b& b) const {
@@ -64,6 +68,47 @@ cv::Vec3b findMostSimilarColor(
     }
 
     return mostSimilarColor;
+}
+
+std::vector<PlayerBoundingBox> readBoundingBoxesFromFile(std::string filePath) {
+    std::vector<PlayerBoundingBox> boundingBoxes;
+    std::ifstream file(filePath);
+    std::string line;
+
+    if (!file.is_open()) {
+        std::cerr << "Could not open the file: " << filePath << std::endl;
+        return boundingBoxes;
+    }
+
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        PlayerBoundingBox bbox;
+        if (!(iss >> bbox.x >> bbox.y >> bbox.w >> bbox.h >> bbox.team)) {
+            std::cerr << "Error reading line: " << line << std::endl;
+            continue;
+        }
+        // You can set the color here if you want, or leave it for later
+        boundingBoxes.push_back(bbox);
+    }
+
+    file.close();
+    return boundingBoxes;
+}
+
+void writeBoundingBoxesToFile(const std::vector<PlayerBoundingBox>& boxes,
+                              const std::string& filePath) {
+    std::ofstream outFile(filePath);
+    if (!outFile.is_open()) {
+        std::cerr << "Error: Could not open the output file." << std::endl;
+        return;
+    }
+
+    for (const auto& box : boxes) {
+        outFile << box.x << " " << box.y << " " << box.w << " " << box.h << " "
+                << box.team << std::endl;
+    }
+
+    outFile.close();
 }
 
 };  // namespace Utils

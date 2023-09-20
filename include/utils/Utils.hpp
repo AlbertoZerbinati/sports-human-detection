@@ -36,7 +36,9 @@ bool areColorsSame(const cv::Vec3b& color1, const cv::Vec3b& color2);
 cv::Vec3b findMostSimilarColor(
     const cv::Vec3b& targetColor,
     const std::map<cv::Vec3b, int, Vec3bCompare> colorMap);
-
+std::vector<PlayerBoundingBox> readBoundingBoxesFromFile(std::string filePath);
+void writeBoundingBoxesToFile(const std::vector<PlayerBoundingBox>& boxes,
+                              const std::string& filePath);
 };  // namespace Utils
 
 #endif  // UTILS_HPP
