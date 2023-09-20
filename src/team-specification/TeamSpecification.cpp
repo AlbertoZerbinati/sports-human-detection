@@ -67,8 +67,8 @@ cv::Vec3b TeamSpecification::findDominantColor(
 
     // remove the black (or gray) cplor from dominants (with threshold)
     for (int i = 0; i < dominantColors.size(); i++) {
-        if (dominantColors[i][0] < 5 && dominantColors[i][1] < 5 &&
-            dominantColors[i][2] < 5) {
+        if (dominantColors[i][0] < 25 && dominantColors[i][1] < 25 &&
+            dominantColors[i][2] < 25) {
             dominantColors.erase(dominantColors.begin() + i);
             i--;
         }
