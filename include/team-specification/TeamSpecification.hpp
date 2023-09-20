@@ -11,8 +11,9 @@
 
 namespace TeamSpecification {
 
-cv::Vec3b findDominantColor(cv::Mat temp, cv::Vec3b team1Color,
-                            cv::Vec3b team2Color, cv::Vec3b extraColor);
+cv::Vec3b findDominantColor(cv::Mat temp, bool ignoreTeamColors,
+                            cv::Vec3b team1Color, cv::Vec3b team2Color,
+                            cv::Vec3b extraColor);
 
 };  // namespace TeamSpecification
 

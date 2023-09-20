@@ -9,6 +9,7 @@
 #include <opencv2/imgproc.hpp>
 
 cv::Vec3b TeamSpecification::findDominantColor(cv::Mat temp,
+                                               bool ignoreTeamColors,
                                                cv::Vec3b team1Color,
                                                cv::Vec3b team2Color,
                                                cv::Vec3b extraColor) {
@@ -37,7 +38,8 @@ cv::Vec3b TeamSpecification::findDominantColor(cv::Mat temp,
     // value being optimized falls below this threshold, the algorithm will
     // stop if the TermCriteria::EPS condition is not met.
 
-    cv::TermCriteria criteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.2);
+    cv::TermCriteria criteria(
+        cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.2);
 
     // Perform K-means clustering
     cv::Mat labels, centers;
@@ -72,6 +74,10 @@ cv::Vec3b TeamSpecification::findDominantColor(cv::Mat temp,
             dominantColors.erase(dominantColors.begin() + i);
             i--;
         }
+    }
+
+    if (ignoreTeamColors) {
+        return dominantColors[0];  // return dominant color
     }
 
     cv::Vec3b finalColor;
