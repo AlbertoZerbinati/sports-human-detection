@@ -16,7 +16,9 @@ Pipeline::Pipeline(const cv::Mat& image, std::string model_path,
     : image_(image.clone()),
       model_path_(model_path),
       peopleDetector_(model_path),
-      peopleSegmentation_() {}
+      peopleSegmentation_(),
+      groundTruthBBoxesFilePath_(groundTruthBBoxesFilePath),
+      groundTruthSegmentationMaskPath_(groundTruthSegmentationMaskPath) {}
 
 Pipeline::~Pipeline() {
     // Cleanup if needed
@@ -243,8 +245,32 @@ PipelineRunOutput Pipeline::run() {
 
 PipelineEvaluateOutput Pipeline::evaluate(PipelineRunOutput detections) {
     PipelineEvaluateOutput evalOutput;
+    float mIoU;
+    float mAP;
 
-    // TODO
+    // Calculate mIoU
+    // read the ground truth segmentation mask
+    cv::Mat groundTruthSegmentationMask =
+        cv::imread(groundTruthSegmentationMaskPath_, cv::IMREAD_GRAYSCALE);
+
+    if (groundTruthSegmentationMask.empty()) {
+        std::cerr << "Error reading ground truth segmentation mask."
+                  << std::endl;
+        mIoU = 0;
+    } else {
+        mIoU = metricsEvaluator_.calculateClassesMIoU(
+            detections.segmentationBinMask, groundTruthSegmentationMask);
+    }
+
+    // Calculate mAP
+    std::vector<Utils::PlayerBoundingBox> groundTruths =
+        Utils::readBoundingBoxesFromFile(groundTruthBBoxesFilePath_);
+
+    metricsEvaluator_.calculateMAP(groundTruths, detections.boundingBoxes);
+
+    // populate the output object
+    evalOutput.mIoU = mIoU;
+    evalOutput.mAP = mAP;
 
     return evalOutput;
 }

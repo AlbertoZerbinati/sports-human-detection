@@ -10,6 +10,7 @@
 #include "people-detection/PeopleDetector.hpp"
 #include "people-segmentation/PeopleSegmentation.hpp"
 #include "team-specification/TeamSpecification.hpp"
+#include "utils/Metrics.hpp"
 
 struct PipelineRunOutput {
     std::vector<Utils::PlayerBoundingBox> boundingBoxes;
@@ -43,6 +44,9 @@ class Pipeline {
     std::string model_path_;
     PeopleDetector peopleDetector_;
     PeopleSegmentation peopleSegmentation_;
+    MetricsEvaluator metricsEvaluator_;
+    std::string groundTruthBBoxesFilePath_;
+    std::string groundTruthSegmentationMaskPath_;
 
     cv::Vec3b extractFieldColor(const cv::Mat& originalWindow,
                                 const cv::Mat& personMask);
