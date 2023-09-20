@@ -18,7 +18,7 @@ using namespace std;
 
 // skin-detection-function
 /**/
-Mat PeopleSegmentation::skinDetect(Mat original) {
+Mat PeopleSegmentation::skinDetect(const Mat& original) {
     // support Mat var
     // convert the image to the HSV color space
     Mat img_HSV;
@@ -48,7 +48,7 @@ Mat PeopleSegmentation::skinDetect(Mat original) {
     return final;
 }
 
-Mat PeopleSegmentation::peopleSegm(Mat original) {
+Mat PeopleSegmentation::peopleSegm(const Mat& original) {
     // define the support images
     Mat mask = Mat::zeros(original.cols, original.rows, CV_8UC1);
     Mat bgdModel;
@@ -101,7 +101,7 @@ Mat PeopleSegmentation::peopleSegm(Mat original) {
 
 /*Function to merge results image obtained from skin-detection and
  * people-segmentation into an unique image*/
-Mat PeopleSegmentation::merger(Mat original) {
+Mat PeopleSegmentation::segmentPeople(const Mat& original) {
     // temp vars
     Mat temp_1 = Mat::zeros(original.cols, original.rows, CV_8UC3);
     Mat temp_2 = Mat::zeros(original.cols, original.rows, CV_8UC3);
@@ -132,47 +132,49 @@ Mat PeopleSegmentation::merger(Mat original) {
         }
     }
 
-    // create a black image
-    Mat inverted_temp_2 = Mat::zeros(original.cols, original.rows, CV_8UC3);
+    // // create a black image
+    // Mat inverted_temp_2 = Mat::zeros(original.cols, original.rows, CV_8UC3);
 
-    // invert temp_2 (black where ther is color), original color where there is
-    // black
-    for (int i = 0; i < original.rows; i++) {
-        for (int j = 0; j < original.cols; j++) {
-            if (!(temp_2.at<Vec3b>(i, j)[0] == 0 &&
-                  temp_2.at<Vec3b>(i, j)[1] == 0 &&
-                  temp_2.at<Vec3b>(i, j)[2] == 0)) {
-                inverted_temp_2.at<Vec3b>(i, j)[0] =
-                    original.at<Vec3b>(i, j)[0];
-                inverted_temp_2.at<Vec3b>(i, j)[1] =
-                    original.at<Vec3b>(i, j)[1];
-                inverted_temp_2.at<Vec3b>(i, j)[2] =
-                    original.at<Vec3b>(i, j)[2];
-            }
-        }
-    }
+    // // invert temp_2 (black where ther is color), original color where there is
+    // // black
+    // for (int i = 0; i < original.rows; i++) {
+    //     for (int j = 0; j < original.cols; j++) {
+    //         if (!(temp_2.at<Vec3b>(i, j)[0] == 0 &&
+    //               temp_2.at<Vec3b>(i, j)[1] == 0 &&
+    //               temp_2.at<Vec3b>(i, j)[2] == 0)) {
+    //             inverted_temp_2.at<Vec3b>(i, j)[0] =
+    //                 original.at<Vec3b>(i, j)[0];
+    //             inverted_temp_2.at<Vec3b>(i, j)[1] =
+    //                 original.at<Vec3b>(i, j)[1];
+    //             inverted_temp_2.at<Vec3b>(i, j)[2] =
+    //                 original.at<Vec3b>(i, j)[2];
+    //         }
+    //     }
+    // }
 
-    // detect field color on the inverted map
-    cv::Vec3b fieldColor = TeamSpecification::findDominantColor(
-        inverted_temp_2, true, cv::Vec3b(0, 0, 0), cv::Vec3b(0, 0, 0),
-        cv::Vec3b(0, 0, 0));
 
-    // now paint black the temp_2 mat where its color matches (with threshold) the field color
-    // (inverted_temp_2 is the original image with the field color painted black)
-    for (int i = 0; i < original.rows; i++) {
-        for (int j = 0; j < original.cols; j++) {
-            if (temp_2.at<Vec3b>(i, j)[0] >= fieldColor[0] - 10 &&
-                temp_2.at<Vec3b>(i, j)[0] <= fieldColor[0] + 10 &&
-                temp_2.at<Vec3b>(i, j)[1] >= fieldColor[1] - 10 &&
-                temp_2.at<Vec3b>(i, j)[1] <= fieldColor[1] + 10 &&
-                temp_2.at<Vec3b>(i, j)[2] >= fieldColor[2] - 10 &&
-                temp_2.at<Vec3b>(i, j)[2] <= fieldColor[2] + 10) {
-                temp_2.at<Vec3b>(i, j)[0] = 0;
-                temp_2.at<Vec3b>(i, j)[1] = 0;
-                temp_2.at<Vec3b>(i, j)[2] = 0;
-            }
-        }
-    }
+    // std::map<cv::Vec3b, int, Utils::Vec3bCompare> emptyTeamsColors;
+    // // detect field color on the inverted map
+    // cv::Vec3b fieldColor = TeamSpecification::findDominantColor(
+    //     inverted_temp_2, true, emptyTeamsColors);
+
+    // // now paint black the temp_2 mat where its color matches (with threshold)
+    // // the field color (inverted_temp_2 is the original image with the field
+    // // color painted black)
+    // for (int i = 0; i < original.rows; i++) {
+    //     for (int j = 0; j < original.cols; j++) {
+    //         if (temp_2.at<Vec3b>(i, j)[0] >= fieldColor[0] - 10 &&
+    //             temp_2.at<Vec3b>(i, j)[0] <= fieldColor[0] + 10 &&
+    //             temp_2.at<Vec3b>(i, j)[1] >= fieldColor[1] - 10 &&
+    //             temp_2.at<Vec3b>(i, j)[1] <= fieldColor[1] + 10 &&
+    //             temp_2.at<Vec3b>(i, j)[2] >= fieldColor[2] - 10 &&
+    //             temp_2.at<Vec3b>(i, j)[2] <= fieldColor[2] + 10) {
+    //             temp_2.at<Vec3b>(i, j)[0] = 0;
+    //             temp_2.at<Vec3b>(i, j)[1] = 0;
+    //             temp_2.at<Vec3b>(i, j)[2] = 0;
+    //         }
+    //     }
+    // }
 
     return temp_2;
 }
