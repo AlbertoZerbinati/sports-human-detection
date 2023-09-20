@@ -8,11 +8,9 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-cv::Vec3b TeamSpecification::findDominantColor(cv::Mat temp,
-                                               bool ignoreTeamColors,
-                                               cv::Vec3b team1Color,
-                                               cv::Vec3b team2Color,
-                                               cv::Vec3b extraColor) {
+cv::Vec3b TeamSpecification::findDominantColor(
+    cv::Mat temp, bool ignoreTeamColors,
+    std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors) {
     cv::Mat pixels = temp.reshape(1, temp.rows * temp.cols);
 
     // Convert the pixel values to floating-point type
@@ -69,8 +67,8 @@ cv::Vec3b TeamSpecification::findDominantColor(cv::Mat temp,
 
     // remove the black (or gray) cplor from dominants (with threshold)
     for (int i = 0; i < dominantColors.size(); i++) {
-        if (dominantColors[i][0] < 20 && dominantColors[i][1] < 20 &&
-            dominantColors[i][2] < 20) {
+        if (dominantColors[i][0] < 5 && dominantColors[i][1] < 5 &&
+            dominantColors[i][2] < 5) {
             dominantColors.erase(dominantColors.begin() + i);
             i--;
         }
@@ -83,47 +81,21 @@ cv::Vec3b TeamSpecification::findDominantColor(cv::Mat temp,
     cv::Vec3b finalColor;
     bool assigned = false;
 
-    // check if the dominant colors are the team colors with threshold
-    int threshold = 15;
-    if (abs(dominantColors[0][0] - team1Color[0]) < threshold &&
-        abs(dominantColors[0][1] - team1Color[1]) < threshold &&
-        abs(dominantColors[0][2] - team1Color[2]) < threshold) {
-        finalColor = team1Color;
-        assigned = true;
-    } else if (abs(dominantColors[0][0] - team2Color[0]) < threshold &&
-               abs(dominantColors[0][1] - team2Color[1]) < threshold &&
-               abs(dominantColors[0][2] - team2Color[2]) < threshold) {
-        finalColor = team2Color;
-        assigned = true;
-    } else if (abs(dominantColors[0][0] - extraColor[0]) < threshold &&
-               abs(dominantColors[0][1] - extraColor[1]) < threshold &&
-               abs(dominantColors[0][2] - extraColor[2]) < threshold) {
-        finalColor = extraColor;
-        assigned = true;
+    // find the most similar color to the dmoniantcolors[0] in the teamcolors
+    // map with the utils function
+    cv::Vec3b mostSimilarColor;
+    if (teamsColors.size() > 0) {
+        mostSimilarColor =
+            Utils::findMostSimilarColor(dominantColors[0], teamsColors);
+    } else {
+        mostSimilarColor = dominantColors[0];
     }
 
-    // check color 1
-    if (!assigned) {
-        if (abs(dominantColors[1][0] - team1Color[0]) < threshold &&
-            abs(dominantColors[1][1] - team1Color[1]) < threshold &&
-            abs(dominantColors[1][2] - team1Color[2]) < threshold) {
-            finalColor = team1Color;
-            assigned = true;
-        } else if (abs(dominantColors[1][0] - team2Color[0]) < threshold &&
-                   abs(dominantColors[1][1] - team2Color[1]) < threshold &&
-                   abs(dominantColors[1][2] - team2Color[2]) < threshold) {
-            finalColor = team2Color;
-            assigned = true;
-        } else if (abs(dominantColors[1][0] - extraColor[0]) < threshold &&
-                   abs(dominantColors[1][1] - extraColor[1]) < threshold &&
-                   abs(dominantColors[1][2] - extraColor[2]) < threshold) {
-            finalColor = extraColor;
-            assigned = true;
-        }
-    }
-
-    if (assigned) {
-        return finalColor;
+    int threshold = 25;
+    // see if it is in threshold with the utils funciton
+    if (Utils::areColorsWithinThreshold(dominantColors[0], mostSimilarColor,
+                                        threshold)) {
+        return mostSimilarColor;
     } else {
         return dominantColors[0];  // return dominant color
     }
