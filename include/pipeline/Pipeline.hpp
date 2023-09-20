@@ -3,6 +3,7 @@
 #ifndef PIPELINE_HPP
 #define PIPELINE_HPP
 
+#include <map>
 #include <opencv2/core/core.hpp>
 #include <vector>
 
@@ -33,7 +34,8 @@ struct PipelineEvaluateOutput {
 class Pipeline {
    public:
     // Constructor
-    Pipeline(const cv::Mat& image, std::string groundTruthBBoxesFilePath,
+    Pipeline(const cv::Mat& image, const std::string model_path,
+             std::string groundTruthBBoxesFilePath,
              std::string groundTruthSegmentationMaskPath);
 
     // Destructor
@@ -42,11 +44,21 @@ class Pipeline {
     // Runs the pipeline on the given image, returning the output
     PipelineRunOutput run();
 
+    // Evaluates the pipeline output, returning the evaluation metrics
     PipelineEvaluateOutput evaluate(PipelineRunOutput detections);
 
    private:
-    PeopleDetector peopleDetector;
-    PeopleSegmentation peopleSegmentation;
+    cv::Mat image_;
+    std::string model_path_;
+    PeopleDetector peopleDetector_;
+    PeopleSegmentation peopleSegmentation_;
+
+    cv::Vec3b extractFieldColor(const cv::Mat& originalWindow,
+                                const cv::Mat& personMask);
+
+    cv::Vec3b extractTeamColor(
+        const cv::Mat& mask,
+        std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors = {});
 };
 
 #endif  // PIPELINE_HPP
