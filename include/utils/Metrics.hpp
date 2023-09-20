@@ -4,21 +4,25 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
-namespace Metrics {
+#include "utils/Utils.hpp"
 
-struct BoundingBox {
-    int x, y, width, height, teamID;
+class MetricsEvaluator {
+   public:
+    float calculateClassesMIoU(const cv::Mat& predicted,
+                               const cv::Mat& groundTruth);
+    float calculateMAP(
+        const std::vector<Utils::PlayerBoundingBox>& groundTruths,
+        const std::vector<Utils::PlayerBoundingBox>& predictions);
+
+   private:
+    float calculateGeometricIoU(const Utils::PlayerBoundingBox& bb1,
+                                const Utils::PlayerBoundingBox& bb2);
+    float calculateClassIoU(const cv::Mat& predicted,
+                            const cv::Mat& groundTruth, int label);
+    float computeAPSingleClass(
+        const std::vector<Utils::PlayerBoundingBox>& groundTruths,
+        const std::vector<Utils::PlayerBoundingBox>& predictions,
+        float iouThreshold);
 };
-
-// Function to calculate Intersection over Union (IoU), used for evaluating
-// player and playing field segmentation
-float calculateIoU(const BoundingBox& box1, const BoundingBox& box2);
-
-// Function to calculate Mean Average Precision (mAP), used for evaluating
-// player detection
-float calculateMAP(const std::vector<std::vector<BoundingBox>>& groundTruths,
-                   const std::vector<std::vector<BoundingBox>>& predictions);
-
-}  // namespace Metrics
 
 #endif  // METRICS_HPP
