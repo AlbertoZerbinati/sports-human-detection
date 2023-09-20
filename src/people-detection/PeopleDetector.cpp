@@ -42,10 +42,10 @@ std::vector<DetectedWindow> PeopleDetector::detectPeople(const cv::Mat& image) {
 
         // Get the number of detected windows
         int num_windows = detected_windows.size();
-        std::cout << "Number of detected windows at scale " << scale << ": "
-                  << num_windows << std::endl;
+        // std::cout << "Number of detected windows at scale " << scale << ": "
+        //           << num_windows << std::endl;
 
-        int max_classes = std::min(num_windows, 11);
+        int max_classes = std::min(num_windows, 9);
 
         // best_windows = detected_windows;
 
@@ -76,8 +76,8 @@ std::vector<DetectedWindow> PeopleDetector::detectPeople(const cv::Mat& image) {
                 best_windows = detected_windows;
                 best_scale = scale;
 
-                std::cout << "New best loss for k " << k << " :" << best_loss
-                          << std::endl;
+                // std::cout << "New best loss for k " << k << " :" << best_loss
+                //           << std::endl;
             }
         }
     }
@@ -291,8 +291,8 @@ float PeopleDetector::computeWeightedLoss(float kmeansLoss, float scale, int k,
     double scalePenalty = kmeansLoss / 10 * gamma / std::pow(scale, 1);
     double kPenalty = kmeansLoss / 10 * delta * std::pow(k, 1);
     double loss = kmeansLoss + scalePenalty + kPenalty;
-    std::cout << "kmeansLoss: " << kmeansLoss
-              << " scalePenalty: " << scalePenalty << " kPenalty: " << kPenalty
-              << " loss: " << loss << std::endl;
+    // std::cout << "kmeansLoss: " << kmeansLoss
+    //           << " scalePenalty: " << scalePenalty << " kPenalty: " << kPenalty
+    //           << " loss: " << loss << std::endl;
     return loss;
 }
