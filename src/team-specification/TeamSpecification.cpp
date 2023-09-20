@@ -17,7 +17,7 @@ cv::Vec3b TeamSpecification::findDominantColor(
     pixels.convertTo(pixels, CV_32F);
 
     // Number of dominant colors to find (K value)
-    int k = 3;  //
+    int k = 2;
 
     // Criteria for K-means algorithm
     // TermCriteria is a class in OpenCV used to define termination criteria
