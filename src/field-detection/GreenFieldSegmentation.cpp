@@ -12,7 +12,7 @@ void preprocessing(const Mat &src, Mat &dst, const double alpha_e) {
     // Get some important properties such as width and height
     int H = src.rows;
     int W = src.cols;
-    cout << "Height: " << H << ", width: " << W << endl;
+    // cout << "Height: " << H << ", width: " << W << endl;
     // Define the kernel size and shape (circular), which is dependent on the
     // image size double alpha_e = 0.5; // suggested 0.5
     int diameter = 2 * int(ceil(alpha_e / 100 * sqrt(pow(H, 2) + pow(W, 2))));
@@ -101,7 +101,7 @@ void train_gmm(Ptr<ml::EM> &gmm, const Mat &samples, const int N_G,
     double training_time_seconds = duration.count();
 
     // Print the training time
-    cout << "Training time: " << training_time_seconds << " seconds." << endl;
+    // cout << "Training time: " << training_time_seconds << " seconds." << endl;
 }
 
 Ptr<ml::EM> gmm_load_trained(const Mat &samples, const int N_G,
@@ -363,12 +363,12 @@ void show_pdf(const Mat &pdf, const int num_points, const Mat &g,
 
 void print_gaussians_data(const int N_G, const Mat &means,
                           const vector<Mat> &covariances, const Mat &weights) {
-    std::cout.precision(3);
-    for (int i = 0; i < N_G; i++)
-        cout << "Gaussian #" << i + 1 << " has prior "
-             << weights.at<double>(0, i) << ", \tvariance "
-             << covariances[i].at<double>(0, 0) << ", \tmean "
-             << means.at<double>(0, i) << endl;
+    // std::cout.precision(3);
+    // for (int i = 0; i < N_G; i++)
+    //     cout << "Gaussian #" << i + 1 << " has prior "
+    //          << weights.at<double>(0, i) << ", \tvariance "
+    //          << covariances[i].at<double>(0, 0) << ", \tmean "
+    //          << means.at<double>(0, i) << endl;
 }
 
 Mat create_envelope(const vector<Mat> &covs, const Mat &means,
@@ -427,8 +427,8 @@ vector<LocalMinimum> findLocalMinima(const Mat &envelope, const Mat &g,
             LocalMinimum minimum;
             minimum.value = current_element;
             minimum.x = g.at<double>(0, i);
-            cout << "Found local minimum at (x,y)=(" << minimum.x << " ,"
-                 << minimum.value << ")" << endl;
+            // cout << "Found local minimum at (x,y)=(" << minimum.x << " ,"
+            //      << minimum.value << ")" << endl;
             local_minima.push_back(minimum);
         }
     }
@@ -502,7 +502,7 @@ Mat chromatic_distorsion_matrix(const Mat &I_gca, const Mat &I_open,
     vector<PixelInfo> pixels;
     int num_minima = minima.size();
     if (num_minima == 0) {
-        cout << "No minima found, returning 0.0 matrix" << endl;
+        // cout << "No minima found, returning 0.0 matrix" << endl;
         return Mat(I_open.size(), CV_32F, Scalar(0.0));
     }
 

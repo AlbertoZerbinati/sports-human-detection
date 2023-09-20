@@ -36,11 +36,13 @@ int main(int argc, char** argv) {
     cv::imwrite(img_name + "_bin_mask.png", runOutput.segmentationBinMask);
     cv::imwrite(img_name + "_color_mask.png", runOutput.segmentationColorMask);
 
+    // TODO: write the bounding boxes to file
+
     // Evaluate the pipeline (if needed)
     PipelineEvaluateOutput evalOutput = pipeline.evaluate(runOutput);
 
     // Output results (for demonstration)
-    std::cout << "Number of detected players: "
+    std::cout << "\nNumber of detected players: "
               << runOutput.boundingBoxes.size() << std::endl;
 
     // Add your code to display or save results

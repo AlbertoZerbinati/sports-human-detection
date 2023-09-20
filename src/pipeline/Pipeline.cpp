@@ -55,19 +55,13 @@ PipelineRunOutput Pipeline::run() {
     // Main logic loop for segmentation
     int i = 0;
     for (const auto& window : detected_windows) {
-        std::cout << "\nProcessing window " << i << "..." << std::endl;
-
         // Extract the bounding box
         cv::Rect rect(window.x, window.y, window.w, window.h);
         cv::Mat windowMat = image_clone(rect).clone();
 
-        std::cout << "\nsegmenting people" << std::endl;
-
         // Perform people segmentation
         cv::Mat peopleSegmentationMat =
             peopleSegmentation_.segmentPeople(windowMat);
-
-        std::cout << "\nExtracting field color" << std::endl;
 
         // Extract field color
         cv::Vec3b fieldColor =
@@ -85,12 +79,9 @@ PipelineRunOutput Pipeline::run() {
             fieldColors.insert(std::pair<cv::Vec3b, int>(fieldColor, 1));
         }
 
-        std::cout << "\nExtracting team color" << std::endl;
-
         // Extract team color
         cv::Vec3b teamColor =
             extractTeamColor(peopleSegmentationMat, teamsColors);
-
         // if the color was in the map then add 1, else add it to the map with
         // count 1
         bool found2 = false;
@@ -105,8 +96,6 @@ PipelineRunOutput Pipeline::run() {
             teamsColors.insert(std::pair<cv::Vec3b, int>(teamColor, 1));
         }
 
-        std::cout << "\nCreating extended player object..." << std::endl;
-
         // Create a Player object and populate its fields (not the team yet!)
         ExtendedPlayer player;
         player.x = window.x;
@@ -117,8 +106,6 @@ PipelineRunOutput Pipeline::run() {
         player.colorMask = peopleSegmentationMat;
         player.team = -1;  // not assigned yet
 
-        std::cout << "\nAdding extended player object to vector..." << std::endl;
-
         // Add the Player object to the vector
         extendedPlayers.push_back(player);
 
@@ -128,7 +115,6 @@ PipelineRunOutput Pipeline::run() {
     // find the most common field color
     cv::Vec3b fieldColor;
     int max = 0;
-    cv::Vec3b fieldColor2;
     for (auto& pair : fieldColors) {
         if (pair.second > max) {
             max = pair.second;
@@ -224,8 +210,6 @@ PipelineRunOutput Pipeline::run() {
             }
         }
     }
-
-    std::cout << "\nApplying field mask to segmentation masks..." << std::endl;
 
     // apply the field mask to the segmentation masks
     for (int y = 0; y < fieldSegmentationMat.rows; ++y) {
