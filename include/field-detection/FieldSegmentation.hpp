@@ -1,5 +1,8 @@
 // Marco Calì
 
+#ifndef FIELD_SEGMENTATION_HPP
+#define FIELD_SEGMENTATION_HPP
+
 // TODO: This causes make to fail...
 // I don't know why but anyway this code seriously needs refactoring
 // #include "field-detection/GreenFieldSegmentation.hpp"
@@ -17,3 +20,5 @@ cv::Mat ColorFieldSegmentation(const cv::Mat &src,
                                const cv::Vec3b estimated_field_color);
 cv::Mat FieldSegmentation(const cv::Mat &src,
                           const cv::Vec3b estimated_field_color);
+
+#endif  // FIELD_SEGMENTATION_HPP
