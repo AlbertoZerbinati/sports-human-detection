@@ -1,3 +1,5 @@
+// To-be-splitted
+
 #include "utils/Metrics.hpp"
 
 #include <opencv2/core/core.hpp>
@@ -71,8 +73,8 @@ float MetricsEvaluator::calculateGeometricIoU(
 }
 
 float MetricsEvaluator::computeAPSingleClass(
-    const std::vector<Utils::PlayerBoundingBox>& bb_class,
-    const std::vector<Utils::PlayerBoundingBox>& ground_truths,
+    const std::vector<Utils::PlayerBoundingBox> &bb_class,
+    const std::vector<Utils::PlayerBoundingBox> &ground_truths,
     float iouThreshold) {
     int TP = 0;  // true positives counter
     int FP = 0;  // false positives counter
@@ -84,8 +86,7 @@ float MetricsEvaluator::computeAPSingleClass(
         float max_iou = -1;
 
         for (Utils::PlayerBoundingBox ground_bb : ground_truths) {
-            float iou_score =
-                calculateGeometricIoU(bb, ground_bb);
+            float iou_score = calculateGeometricIoU(bb, ground_bb);
             if (iou_score > max_iou) {
                 max_iou = iou_score;
             }
@@ -187,7 +188,7 @@ float MetricsEvaluator::calculateMAP(
     float average_precision_team2 =
         computeAPSingleClass(predictionsTeam2, groundTruthsTeam2, iouThreshold);
 
-    // Repeat the same process for predictionsTeam2 if needed
+    // TODO: Repeat the same process for predictionsTeam2 and return highest map
 
     // Calculate mAP
     float mAP = (average_precision_team1 + average_precision_team2) / 2.0;
