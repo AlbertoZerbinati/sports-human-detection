@@ -195,9 +195,11 @@ Mat FieldSegmentation(const Mat &src, const Vec3b estimated_field_color) {
     int blue = estimated_field_color[0];
     int green = estimated_field_color[1];
     int red = estimated_field_color[2];
-    if (green > red and green > blue)
-        mask = GreenFieldsSegmentation(src);
-    else
-        mask = ColorFieldSegmentation(src, estimated_field_color);
+    mask = GreenFieldsSegmentation(src);
+    
+    // if mask is empty or so, then use the color segmentation method
+    if (countNonZero(mask) < 250)
+        mask = ColorFieldSegmentation(src, estimated_field_color); // fallback method
+
     return mask.clone();
 }
