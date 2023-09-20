@@ -11,17 +11,8 @@
 #include "people-segmentation/PeopleSegmentation.hpp"
 #include "team-specification/TeamSpecification.hpp"
 
-struct Player {
-    int x;
-    int y;
-    int w;
-    int h;
-    int team;
-    cv::Vec3b color;
-};
-
 struct PipelineRunOutput {
-    std::vector<Player> boundingBoxes;
+    std::vector<Utils::PlayerBoundingBox> boundingBoxes;
     cv::Mat segmentationBinMask;
     cv::Mat segmentationColorMask;
 };

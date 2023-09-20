@@ -10,10 +10,6 @@
 #include "field-detection/FieldSegmentation.hpp"
 #include "utils/Utils.hpp"
 
-struct ExtendedPlayer : Player {
-    cv::Mat colorMask;
-};
-
 Pipeline::Pipeline(const cv::Mat& image, std::string model_path,
                    std::string groundTruthBBoxesFilePath,
                    std::string groundTruthSegmentationMaskPath)
@@ -29,7 +25,7 @@ Pipeline::~Pipeline() {
 PipelineRunOutput Pipeline::run() {
     // create the output variables
     PipelineRunOutput output;
-    std::vector<ExtendedPlayer> extendedPlayers;
+    std::vector<Utils::ExtendedPlayerBoundingBox> extendedPlayers;
     cv::Mat segmentationBinMask;
     cv::Mat segmentationColorMask;
 
@@ -97,7 +93,7 @@ PipelineRunOutput Pipeline::run() {
         }
 
         // Create a Player object and populate its fields (not the team yet!)
-        ExtendedPlayer player;
+        Utils::ExtendedPlayerBoundingBox player;
         player.x = window.x;
         player.y = window.y;
         player.w = window.w;
@@ -231,7 +227,7 @@ PipelineRunOutput Pipeline::run() {
 
     // cast extendedplayers to extendedPlayers because we no longer need the
     // masks
-    std::vector<Player> players;
+    std::vector<Utils::PlayerBoundingBox> players;
     for (auto& player : extendedPlayers) {
         player.colorMask.release();
         players.push_back(player);
@@ -260,8 +256,8 @@ cv::Vec3b Pipeline::extractFieldColor(const cv::Mat& originalWindow,
     std::map<cv::Vec3b, int, Utils::Vec3bCompare> emptyTeamsColors;
 
     // extract the dominant color of the field from the inverted mask
-    cv::Vec3b fieldColor =
-        TeamSpecification::findDominantColor(invertedMask, true, emptyTeamsColors);
+    cv::Vec3b fieldColor = TeamSpecification::findDominantColor(
+        invertedMask, true, emptyTeamsColors);
 
     return fieldColor;
 }

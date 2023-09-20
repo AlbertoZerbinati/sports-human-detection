@@ -12,6 +12,19 @@
 
 namespace Utils {
 
+struct PlayerBoundingBox {
+    int x;
+    int y;
+    int w;
+    int h;
+    int team;
+    cv::Vec3b color;
+};
+
+struct ExtendedPlayerBoundingBox : PlayerBoundingBox {
+    cv::Mat colorMask;
+};
+
 struct Vec3bCompare {
     bool operator()(const cv::Vec3b& a, const cv::Vec3b& b) const;
 };
