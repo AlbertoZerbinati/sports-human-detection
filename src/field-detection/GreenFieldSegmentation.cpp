@@ -2,7 +2,72 @@
 
 #include "field-detection/GreenFieldSegmentation.hpp"
 
-void preprocessing(const cv::Mat &src, cv::Mat &dst, const double alpha_e) {
+cv::Mat GreenFieldSegmentation::detectGreenField(const cv::Mat &I) {
+    cv::Mat imageOpen;
+    double alpha_e = 0.5;
+
+    preprocessing(I, imageOpen, alpha_e);
+
+    // Green Chromaticity Analysis
+    cv::Mat imageGCA;
+    chromaticityAnalysis(imageOpen, imageGCA);
+    imageGCA.convertTo(imageGCA, CV_32F, 1 / 255.0);
+
+    // Adjust the scale factor as for speeding up the training
+    double scaleFactor = 0.1;
+    cv::Size lowerSizeImage(imageGCA.cols * scaleFactor,
+                            imageGCA.rows * scaleFactor);
+    cv::Mat reducedImageGCA;
+    resize(imageGCA, reducedImageGCA, lowerSizeImage);
+
+    cv::Mat samples =
+        reducedImageGCA.reshape(1, reducedImageGCA.rows * reducedImageGCA.cols);
+
+    // Number of Gaussian distributions used for the E-M algorithm.
+    int N_G = 6;
+
+    cv::Mat logLikelihoods, labels, probs;
+    cv::Ptr<cv::ml::EM> gmm = cv::ml::EM::create();
+    trainGMM(gmm, samples, N_G, logLikelihoods, labels, probs);
+
+    // Get covariance of each Gaussian
+    std::vector<cv::Mat> covs;
+    gmm->getCovs(covs);
+    cv::Mat means = gmm->getMeans();
+    cv::Mat weights = gmm->getWeights();
+
+    // Compute PDF
+    int numPoints = 1000;
+    double gMin = 0.0;  // Minimum possible "g" value
+    double gMax = 1.0;  // Maximum possible "g" value
+    double step = (gMax - gMin) / static_cast<double>(numPoints);
+
+    cv::Mat g = cv::Mat::zeros(1, numPoints, CV_64F);
+    for (int i = 0; i < numPoints; ++i) g.at<double>(0, i) = gMin + i * step;
+
+    cv::Mat pdf = computePDF(N_G, numPoints, means, covs, weights, g);
+    // Now choose T_G
+    double T = 1.0 / 4.0;
+    double m0 = findFirstMinimumAfterIndex(
+        pdf, g, findFirstMaximumAfterThreshold(pdf, g, T));
+    double T_G = std::max(T, m0);
+    cv::Mat mask1 = computeMask1(T_G, imageGCA);
+
+    cv::Mat envelope = createEnvelope(covs, means, weights, numPoints, N_G);
+    std::vector<LocalMinimum> minima = findLocalMinima(envelope, g, T_G);
+
+    double T_C = 0.15;
+    cv::Mat cd_matrix =
+        chromaticDistortionMatrix(imageGCA, imageOpen, T_G, minima);
+    cv::Mat mask2 = computeMask2(T_C, mask1, cd_matrix);
+
+    // Let's apply the opening to the mask
+    preprocessing(mask2, mask2, alpha_e);
+    return mask2.clone();
+}
+
+void GreenFieldSegmentation::preprocessing(const cv::Mat &src, cv::Mat &dst,
+                                           const double alpha_e) {
     // The opening operation is based on the size of the image
     int H = src.rows;
     int W = src.cols;
@@ -17,7 +82,8 @@ void preprocessing(const cv::Mat &src, cv::Mat &dst, const double alpha_e) {
     cv::morphologyEx(src, dst, cv::MORPH_OPEN, element);
 }
 
-void chromaticityAnalysis(const cv::Mat &src, cv::Mat &dst) {
+void GreenFieldSegmentation::chromaticityAnalysis(const cv::Mat &src,
+                                                  cv::Mat &dst) {
     // Make sure the destination matrix has the same size as the source
     dst.create(src.size(),
                CV_8UC1);  // CV_8UC1 for single-channel (grayscale) image
@@ -37,8 +103,10 @@ void chromaticityAnalysis(const cv::Mat &src, cv::Mat &dst) {
         });
 }
 
-void trainGMM(cv::Ptr<cv::ml::EM> &gmm, const cv::Mat &samples, const int N_G,
-              cv::Mat &logLikelihoods, cv::Mat &labels, cv::Mat &probs) {
+void GreenFieldSegmentation::trainGMM(cv::Ptr<cv::ml::EM> &gmm,
+                                      const cv::Mat &samples, const int N_G,
+                                      cv::Mat &logLikelihoods, cv::Mat &labels,
+                                      cv::Mat &probs) {
     gmm->setClustersNumber(N_G);
     gmm->setCovarianceMatrixType(cv::ml::EM::COV_MAT_DIAGONAL);
     std::cout << "Training over " << samples.rows << " samples and "
@@ -46,14 +114,17 @@ void trainGMM(cv::Ptr<cv::ml::EM> &gmm, const cv::Mat &samples, const int N_G,
     gmm->trainEM(samples, logLikelihoods, labels, probs);
 }
 
-double computeGaussian(double x, double mean, double variance) {
+double GreenFieldSegmentation::computeGaussian(double x, double mean,
+                                               double variance) {
     return 1 / (sqrt(2.0 * CV_PI * variance)) *
            exp(-0.5 * pow(x - mean, 2) / variance);
 }
 
-cv::Mat computePDF(const int N_G, const int numPoints, const cv::Mat &means,
-                   const std::vector<cv::Mat> &covs, const cv::Mat &weights,
-                   const cv::Mat &g) {
+cv::Mat GreenFieldSegmentation::computePDF(const int N_G, const int numPoints,
+                                           const cv::Mat &means,
+                                           const std::vector<cv::Mat> &covs,
+                                           const cv::Mat &weights,
+                                           const cv::Mat &g) {
     // Initialize the sum of PDFs to zeros
     cv::Mat sumPDF = cv::Mat::zeros(1, numPoints, CV_64F);
 
@@ -78,7 +149,8 @@ cv::Mat computePDF(const int N_G, const int numPoints, const cv::Mat &means,
     return sumPDF.clone();
 }
 
-cv::Mat computeMask1(const double threshold, const cv::Mat &chromaticity) {
+cv::Mat GreenFieldSegmentation::computeMask1(const double threshold,
+                                             const cv::Mat &chromaticity) {
     cv::Mat mask = cv::Mat::zeros(chromaticity.size(), CV_8U);
 
     // Iterate through each pixel of the images
@@ -95,8 +167,9 @@ cv::Mat computeMask1(const double threshold, const cv::Mat &chromaticity) {
     return mask.clone();
 }
 
-int findFirstMaximumAfterThreshold(const cv::Mat &pdf, const cv::Mat &g,
-                                   double threshold) {
+int GreenFieldSegmentation::findFirstMaximumAfterThreshold(const cv::Mat &pdf,
+                                                           const cv::Mat &g,
+                                                           double threshold) {
     int numPoints = pdf.cols;
     bool foundThreshold = false;
 
@@ -128,8 +201,9 @@ int findFirstMaximumAfterThreshold(const cv::Mat &pdf, const cv::Mat &g,
     return maximumIndex;
 }
 
-double findFirstMinimumAfterIndex(const cv::Mat &pdf, const cv::Mat &g,
-                                  int index) {
+double GreenFieldSegmentation::findFirstMinimumAfterIndex(const cv::Mat &pdf,
+                                                          const cv::Mat &g,
+                                                          int index) {
     int numPoints = pdf.cols;
 
     // Initialize variables to track minimum
@@ -157,8 +231,10 @@ double findFirstMinimumAfterIndex(const cv::Mat &pdf, const cv::Mat &g,
         return -1.0;  // No suitable local minimum found
 }
 
-cv::Mat createEnvelope(const std::vector<cv::Mat> &covs, const cv::Mat &means,
-                       const cv::Mat &weights, int numPoints, int N_G) {
+cv::Mat GreenFieldSegmentation::createEnvelope(const std::vector<cv::Mat> &covs,
+                                               const cv::Mat &means,
+                                               const cv::Mat &weights,
+                                               int numPoints, int N_G) {
     // Set up the x-axis range
     cv::Mat envelope = cv::Mat::zeros(1, numPoints, CV_64F);
 
@@ -197,9 +273,8 @@ cv::Mat createEnvelope(const std::vector<cv::Mat> &covs, const cv::Mat &means,
     return envelope.clone();
 }
 
-std::vector<LocalMinimum> findLocalMinima(const cv::Mat &envelope,
-                                          const cv::Mat &g,
-                                          const double threshold) {
+std::vector<LocalMinimum> GreenFieldSegmentation::findLocalMinima(
+    const cv::Mat &envelope, const cv::Mat &g, const double threshold) {
     int numElements = envelope.cols;
     std::vector<LocalMinimum> localMinima;
 
@@ -221,21 +296,22 @@ std::vector<LocalMinimum> findLocalMinima(const cv::Mat &envelope,
     return localMinima;
 }
 
-float dotProduct(cv::Vec3b v, cv::Vec3b u) {
+float GreenFieldSegmentation::dotProduct(cv::Vec3b v, cv::Vec3b u) {
     float sum = 0;
     for (int i = 0; i < 3; i++) sum += v[i] * u[i];
     return sum;
 }
 
-float computeChromaticDistortion(cv::Vec3b v, cv::Vec3b u) {
+float GreenFieldSegmentation::computeChromaticDistortion(cv::Vec3b v,
+                                                         cv::Vec3b u) {
     cv::Vec3b u_v = dotProduct(u, v) / dotProduct(v, v) * v;
     cv::Vec3b u_perp = u - u_v;
     float cd = sqrt(dotProduct(u_perp, u_perp)) / sqrt(dotProduct(u_v, u_v));
     return cd;
 }
 
-std::vector<cv::Vec3b> computeMeanColors(std::vector<PixelInfo> pixels,
-                                         std::vector<int> counts) {
+std::vector<cv::Vec3b> GreenFieldSegmentation::computeMeanColors(
+    std::vector<PixelInfo> pixels, std::vector<int> counts) {
     std::vector<cv::Vec3b> means;
     std::vector<cv::Vec3f> sums;
 
@@ -259,9 +335,9 @@ std::vector<cv::Vec3b> computeMeanColors(std::vector<PixelInfo> pixels,
     return means;
 }
 
-cv::Mat chromaticDistortionMatrix(const cv::Mat &imageGCA,
-                                  const cv::Mat &imageOpen, const double T_G,
-                                  const std::vector<LocalMinimum> &minima) {
+cv::Mat GreenFieldSegmentation::chromaticDistortionMatrix(
+    const cv::Mat &imageGCA, const cv::Mat &imageOpen, const double T_G,
+    const std::vector<LocalMinimum> &minima) {
     std::vector<PixelInfo> pixels;
     int numMinima = minima.size();
     if (numMinima == 0) {
@@ -344,8 +420,9 @@ cv::Mat chromaticDistortionMatrix(const cv::Mat &imageGCA,
     return cd_matrix.clone();
 }
 
-cv::Mat computeMask2(const double T_C, const cv::Mat &mask1,
-                     const cv::Mat &cd_matrix) {
+cv::Mat GreenFieldSegmentation::computeMask2(const double T_C,
+                                             const cv::Mat &mask1,
+                                             const cv::Mat &cd_matrix) {
     // Initialize the result mask with zeros
     cv::Mat mask2(mask1.size(), CV_8U, cv::Scalar(0));
 
