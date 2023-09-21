@@ -2,12 +2,13 @@ FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND noninteractive
 
+# Install dependencies.
 RUN apt update && \
   apt upgrade -y && \
   apt install build-essential cmake git pkg-config libgtk-3-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libjpeg-dev libpng-dev libtiff-dev gfortran openexr libatlas-base-dev python3-dev python3-numpy libtbb2 libtbb-dev libdc1394-22-dev libopenexr-dev libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev -y && \
   apt install qt5-default libopencv-dev -y
 
-RUN mkdir -p workspace/opencv_build 
+RUN mkdir -p workspace/opencv_build
 WORKDIR workspace/opencv_build
 
 RUN git clone https://github.com/opencv/opencv.git
