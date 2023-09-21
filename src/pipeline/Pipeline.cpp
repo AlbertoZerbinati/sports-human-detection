@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include <tuple>
 
-#include "field-detection/FieldSegmentation.hpp"
+#include "field-segmentation/FieldSegmentation.hpp"
 #include "utils/Utils.hpp"
 
 struct ExtendedPlayer : Player {
@@ -126,7 +126,8 @@ PipelineRunOutput Pipeline::run() {
               << (int)fieldColor[1] << ", " << (int)fieldColor[2] << std::endl;
 
     // perform field segmentation on the whole image
-    cv::Mat fieldSegmentationMat = FieldSegmentation(image_clone, fieldColor);
+    FieldSegmentation fs = FieldSegmentation();
+    cv::Mat fieldSegmentationMat = fs.segmentField(image_clone, fieldColor);
 
     // find team 1 color
     max = 0;
@@ -260,8 +261,8 @@ cv::Vec3b Pipeline::extractFieldColor(const cv::Mat& originalWindow,
     std::map<cv::Vec3b, int, Utils::Vec3bCompare> emptyTeamsColors;
 
     // extract the dominant color of the field from the inverted mask
-    cv::Vec3b fieldColor =
-        TeamSpecification::findDominantColor(invertedMask, true, emptyTeamsColors);
+    cv::Vec3b fieldColor = TeamSpecification::findDominantColor(
+        invertedMask, true, emptyTeamsColors);
 
     return fieldColor;
 }
