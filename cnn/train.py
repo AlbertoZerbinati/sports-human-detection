@@ -1,7 +1,6 @@
 # Alberto Zerbinati
 
 import argparse
-from ast import mod
 
 import cv2
 import numpy as np
