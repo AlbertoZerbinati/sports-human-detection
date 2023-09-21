@@ -21,9 +21,13 @@ class MetricsEvaluator {
                                 const Utils::PlayerBoundingBox& bb2);
     float calculateClassIoU(const cv::Mat& predicted,
                             const cv::Mat& groundTruth, int label);
-    float computeAPSingleClass(
+    float calculateMAPForTeams(
         const std::vector<Utils::PlayerBoundingBox>& groundTruths,
+        const std::vector<Utils::PlayerBoundingBox>& predictions, int team1,
+        int team2);
+    float computeAPSingleClass(
         const std::vector<Utils::PlayerBoundingBox>& predictions,
+        std::vector<Utils::PlayerBoundingBox> groundTruths,
         float iouThreshold);
 };
 

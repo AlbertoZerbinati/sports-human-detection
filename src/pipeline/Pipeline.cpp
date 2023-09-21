@@ -266,7 +266,7 @@ PipelineEvaluateOutput Pipeline::evaluate(PipelineRunOutput detections) {
     std::vector<Utils::PlayerBoundingBox> groundTruths =
         Utils::readBoundingBoxesFromFile(groundTruthBBoxesFilePath_);
 
-    metricsEvaluator_.calculateMAP(groundTruths, detections.boundingBoxes);
+    mAP = metricsEvaluator_.calculateMAP(groundTruths, detections.boundingBoxes);
 
     // populate the output object
     evalOutput.mIoU = mIoU;

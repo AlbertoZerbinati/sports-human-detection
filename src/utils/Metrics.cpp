@@ -74,34 +74,41 @@ float MetricsEvaluator::calculateGeometricIoU(
 
 float MetricsEvaluator::computeAPSingleClass(
     const std::vector<Utils::PlayerBoundingBox> &bb_class,
-    const std::vector<Utils::PlayerBoundingBox> &ground_truths,
-    float iouThreshold) {
-    int TP = 0;  // true positives counter
-    int FP = 0;  // false positives counter
+    std::vector<Utils::PlayerBoundingBox> ground_truths, float iouThreshold) {
+    int TP = 0;
+    int FP = 0;
+    int FN =
+        ground_truths
+            .size();  // Initialize FN to the total number of ground truth boxes
 
     std::vector<float> precision_values;
     std::vector<float> recall_values;
 
     for (Utils::PlayerBoundingBox bb : bb_class) {
         float max_iou = -1;
+        int max_iou_index = -1;
 
-        for (Utils::PlayerBoundingBox ground_bb : ground_truths) {
+        for (int i = 0; i < ground_truths.size(); ++i) {
+            Utils::PlayerBoundingBox ground_bb = ground_truths[i];
             float iou_score = calculateGeometricIoU(bb, ground_bb);
             if (iou_score > max_iou) {
                 max_iou = iou_score;
+                max_iou_index = i;
             }
         }
 
-        // could define a constant threshold_iou = 0.5
         if (max_iou > iouThreshold) {
             TP++;
+            FN--;  // Decrement FN as we have found a corresponding ground truth
+            ground_truths.erase(
+                ground_truths.begin() +
+                max_iou_index);  // Remove the matched ground truth
         } else {
             FP++;
         }
 
-        // Compute row-wise precision and recall
-        float precision = TP / (TP + FP);
-        float recall = TP / ground_truths.size();
+        float precision = TP / (float)(TP + FP);
+        float recall = TP / (float)(TP + FN);
         precision_values.push_back(precision);
         recall_values.push_back(recall);
     }
@@ -132,6 +139,17 @@ float MetricsEvaluator::computeAPSingleClass(
 float MetricsEvaluator::calculateMAP(
     const std::vector<Utils::PlayerBoundingBox> &groundTruths,
     const std::vector<Utils::PlayerBoundingBox> &predictions) {
+    // Calculate mAP for each team label assignment and return the max
+    float mAP1 = calculateMAPForTeams(groundTruths, predictions, 1, 2);
+    float mAP2 = calculateMAPForTeams(groundTruths, predictions, 2, 1);
+
+    return std::max(mAP1, mAP2);
+}
+
+float MetricsEvaluator::calculateMAPForTeams(
+    const std::vector<Utils::PlayerBoundingBox> &groundTruths,
+    const std::vector<Utils::PlayerBoundingBox> &predictions, int team1Label,
+    int team2Label) {
     std::vector<Utils::PlayerBoundingBox> groundTruthsTeam1;
     std::vector<Utils::PlayerBoundingBox> groundTruthsTeam2;
 
@@ -141,16 +159,16 @@ float MetricsEvaluator::calculateMAP(
     // for each team, add the ground truths and predictions to the corresponding
     // vector
     for (int i = 0; i < groundTruths.size(); i++) {
-        if (groundTruths[i].team == 1) {
+        if (groundTruths[i].team == team1Label) {
             groundTruthsTeam1.push_back(groundTruths[i]);
-        } else if (groundTruths[i].team == 2) {
+        } else if (groundTruths[i].team == team2Label) {
             groundTruthsTeam2.push_back(groundTruths[i]);
         }
     }
     for (int i = 0; i < predictions.size(); i++) {
-        if (predictions[i].team == 1) {
+        if (predictions[i].team == team1Label) {
             predictionsTeam1.push_back(predictions[i]);
-        } else if (predictions[i].team == 2) {
+        } else if (predictions[i].team == team2Label) {
             predictionsTeam2.push_back(predictions[i]);
         }
     }
@@ -168,29 +186,11 @@ float MetricsEvaluator::calculateMAP(
     // Utils::PlayerBoundingBox &b)
     //           { return a.confidence_score > b.confidence_score; });
 
-    // for each team, cut down the longest vector (between predictions and
-    // groundtruths) to the length of the shortest one
-    if (groundTruthsTeam1.size() > predictionsTeam1.size()) {
-        groundTruthsTeam1.resize(predictionsTeam1.size());
-    } else if (predictionsTeam1.size() > groundTruthsTeam1.size()) {
-        predictionsTeam1.resize(groundTruthsTeam1.size());
-    }
-
-    if (groundTruthsTeam2.size() > predictionsTeam2.size()) {
-        groundTruthsTeam2.resize(predictionsTeam2.size());
-    } else if (predictionsTeam2.size() > groundTruthsTeam2.size()) {
-        predictionsTeam2.resize(groundTruthsTeam2.size());
-    }
-
     float iouThreshold = 0.5;
     float average_precision_team1 =
         computeAPSingleClass(predictionsTeam1, groundTruthsTeam1, iouThreshold);
     float average_precision_team2 =
         computeAPSingleClass(predictionsTeam2, groundTruthsTeam2, iouThreshold);
 
-    // TODO: Repeat the same process for predictionsTeam2 and return highest map
-
-    // Calculate mAP
-    float mAP = (average_precision_team1 + average_precision_team2) / 2.0;
-    return mAP;
+    return (average_precision_team1 + average_precision_team2) / 2.0;
 }
