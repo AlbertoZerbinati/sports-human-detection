@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <opencv2/opencv.hpp>
 #include <sstream>
 
 namespace Utils {
@@ -104,11 +105,37 @@ void writeBoundingBoxesToFile(const std::vector<PlayerBoundingBox>& boxes,
     }
 
     for (const auto& box : boxes) {
+        if (box.team != -1) {
         outFile << box.x << " " << box.y << " " << box.w << " " << box.h << " "
                 << box.team << std::endl;
+        }
     }
 
     outFile.close();
+}
+
+void saveBoundingBoxesOnImage(
+    const cv::Mat& img, const std::vector<PlayerBoundingBox>& boundingBoxes,
+    const std::string& outputFileName) {
+    // Create a copy of the image
+    cv::Mat imgCopy = img.clone();
+
+    // Draw each bounding box
+    for (const auto& bbox : boundingBoxes) {
+        cv::Scalar color;
+
+        if (bbox.team == 1) {
+            color = cv::Scalar(0, 0, 255);  // Red for team 1
+        } else if (bbox.team == 2) {
+            color = cv::Scalar(255, 0, 0);  // Blue for team 2
+        }
+
+        cv::rectangle(imgCopy, cv::Point(bbox.x, bbox.y),
+                      cv::Point(bbox.x + bbox.w, bbox.y + bbox.h), color, 2);
+    }
+
+    // Save the image
+    cv::imwrite(outputFileName, imgCopy);
 }
 
 };  // namespace Utils

@@ -39,6 +39,9 @@ cv::Vec3b findMostSimilarColor(
 std::vector<PlayerBoundingBox> readBoundingBoxesFromFile(std::string filePath);
 void writeBoundingBoxesToFile(const std::vector<PlayerBoundingBox>& boxes,
                               const std::string& filePath);
+void saveBoundingBoxesOnImage(
+    const cv::Mat& img, const std::vector<PlayerBoundingBox>& boundingBoxes,
+    const std::string& outputFileName);
 };  // namespace Utils
 
 #endif  // UTILS_HPP

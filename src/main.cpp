@@ -44,7 +44,8 @@ int main(int argc, char** argv) {
 
     std::cout << "\nSaving outputs to files: " << img_name + "_bin_mask.png"
               << ", " << img_name + "_color_mask.png"
-              << ", " << img_name + "_bboxes.txt" << std::endl;
+              << ", " << img_name + "_bboxes.txt"
+              << ", " << img_name + "_bboxes.png" << std::endl;
 
     // Save the outputs
     cv::imwrite(img_name + "_bin_mask.png", runOutput.segmentationBinMask);
@@ -55,6 +56,8 @@ int main(int argc, char** argv) {
             "_bboxes.txt");  // TODO: here there are some players returned by
                              // the pipeline that are assigned to team -1 ...
                              // manage this throughout the pipeline and here
+    Utils::saveBoundingBoxesOnImage(img, runOutput.boundingBoxes,
+                                    img_name + "_bboxes.png");
 
     return 0;
 }
