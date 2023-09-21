@@ -4,12 +4,12 @@
 
 #include "field-detection/GreenFieldSegmentation.hpp"
 
-cv::Mat FieldSegmentation::colorFieldSegmentation(
-    const cv::Mat &image, const cv::Vec3b estimatedColor) {
-    cv::Mat mask = cv::Mat::zeros(image.size(), CV_8U);
+void FieldSegmentation::colorFieldSegmentation(const cv::Mat &image,
+                                               cv::Mat &dst,
+                                               const cv::Vec3b estimatedColor) {
     int threshold = 25;
 
-    // fill the mask with white  where the image pixels color is in threshold
+    // fill the mask with white where the image pixels color is in threshold
     // with the estimated color
     for (int y = 0; y < image.rows; y++) {
         for (int x = 0; x < image.cols; x++) {
@@ -19,17 +19,16 @@ cv::Mat FieldSegmentation::colorFieldSegmentation(
                     threshold and
                 abs(image.at<cv::Vec3b>(y, x)[2] - estimatedColor[2]) <
                     threshold) {
-                mask.at<uchar>(y, x) = 255;
+                dst.at<uchar>(y, x) = 255;
             }
         }
     }
-
-    return mask.clone();
 }
 
-cv::Mat FieldSegmentation::segmentField(const cv::Mat &src,
-                                        const cv::Vec3b estimatedColor) {
-    cv::Mat mask;
+void FieldSegmentation::segmentField(const cv::Mat &src, cv::Mat &dst,
+                                     const cv::Vec3b estimatedColor) {
+    cv::Mat mask = cv::Mat::zeros(image.size(), CV_8U);
+
     int blue = estimatedColor[0];
     int green = estimatedColor[1];
     int red = estimatedColor[2];
@@ -39,7 +38,5 @@ cv::Mat FieldSegmentation::segmentField(const cv::Mat &src,
 
     // if mask is empty or so, then use the color segmentation method
     if (cv::countNonZero(mask) < 250)
-        mask = colorFieldSegmentation(src, estimatedColor);  // fallback method
-
-    return mask.clone();
+        colorFieldSegmentation(src, mask, estimatedColor);  // fallback method
 }
