@@ -2,6 +2,11 @@
 
 #include "utils/Utils.hpp"
 
+#include <fstream>
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <sstream>
+
 namespace Utils {
 
 bool Vec3bCompare::operator()(const cv::Vec3b& a, const cv::Vec3b& b) const {
@@ -64,6 +69,73 @@ cv::Vec3b findMostSimilarColor(
     }
 
     return mostSimilarColor;
+}
+
+std::vector<PlayerBoundingBox> readBoundingBoxesFromFile(std::string filePath) {
+    std::vector<PlayerBoundingBox> boundingBoxes;
+    std::ifstream file(filePath);
+    std::string line;
+
+    if (!file.is_open()) {
+        std::cerr << "Could not open the file: " << filePath << std::endl;
+        return boundingBoxes;
+    }
+
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        PlayerBoundingBox bbox;
+        if (!(iss >> bbox.x >> bbox.y >> bbox.w >> bbox.h >> bbox.team)) {
+            std::cerr << "Error reading line: " << line << std::endl;
+            continue;
+        }
+        // You can set the color here if you want, or leave it for later
+        boundingBoxes.push_back(bbox);
+    }
+
+    file.close();
+    return boundingBoxes;
+}
+
+void writeBoundingBoxesToFile(const std::vector<PlayerBoundingBox>& boxes,
+                              const std::string& filePath) {
+    std::ofstream outFile(filePath);
+    if (!outFile.is_open()) {
+        std::cerr << "Error: Could not open the output file." << std::endl;
+        return;
+    }
+
+    for (const auto& box : boxes) {
+        if (box.team != -1) {
+        outFile << box.x << " " << box.y << " " << box.w << " " << box.h << " "
+                << box.team << std::endl;
+        }
+    }
+
+    outFile.close();
+}
+
+void saveBoundingBoxesOnImage(
+    const cv::Mat& img, const std::vector<PlayerBoundingBox>& boundingBoxes,
+    const std::string& outputFileName) {
+    // Create a copy of the image
+    cv::Mat imgCopy = img.clone();
+
+    // Draw each bounding box
+    for (const auto& bbox : boundingBoxes) {
+        cv::Scalar color;
+
+        if (bbox.team == 1) {
+            color = cv::Scalar(0, 0, 255);  // Red for team 1
+        } else if (bbox.team == 2) {
+            color = cv::Scalar(255, 0, 0);  // Blue for team 2
+        }
+
+        cv::rectangle(imgCopy, cv::Point(bbox.x, bbox.y),
+                      cv::Point(bbox.x + bbox.w, bbox.y + bbox.h), color, 2);
+    }
+
+    // Save the image
+    cv::imwrite(outputFileName, imgCopy);
 }
 
 };  // namespace Utils

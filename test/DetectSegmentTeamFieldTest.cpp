@@ -3,7 +3,7 @@
 // #include <iostream>
 // #include <opencv2/opencv.hpp>
 
-// #include "field-detection/FieldSegmentation.hpp"
+// #include "field-segmentation/FieldSegmentation.hpp"
 // #include "people-detection/PeopleDetector.hpp"
 // #include "people-segmentation/PeopleSegmentation.hpp"
 // #include "team-specification/TeamSpecification.hpp"
@@ -271,7 +271,7 @@
 //          << (int)fieldColor[2] << ")" << endl;
 
 //     // perform field segmentation
-//     cv::Mat field_segmentation_mat = FieldSegmentation(test_image, fieldColor);
+//     cv::Mat field_segmentation_mat = fieldSegmentation(test_image, fieldColor);
 
 //     // Save the field segmentation image
 //     cv::imwrite("field_segmentation.jpg", field_segmentation_mat);

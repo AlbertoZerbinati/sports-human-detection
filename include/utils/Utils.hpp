@@ -12,6 +12,19 @@
 
 namespace Utils {
 
+struct PlayerBoundingBox {
+    int x;
+    int y;
+    int w;
+    int h;
+    int team;
+    cv::Vec3b color;
+};
+
+struct ExtendedPlayerBoundingBox : PlayerBoundingBox {
+    cv::Mat colorMask;
+};
+
 struct Vec3bCompare {
     bool operator()(const cv::Vec3b& a, const cv::Vec3b& b) const;
 };
@@ -23,7 +36,12 @@ bool areColorsSame(const cv::Vec3b& color1, const cv::Vec3b& color2);
 cv::Vec3b findMostSimilarColor(
     const cv::Vec3b& targetColor,
     const std::map<cv::Vec3b, int, Vec3bCompare> colorMap);
-
+std::vector<PlayerBoundingBox> readBoundingBoxesFromFile(std::string filePath);
+void writeBoundingBoxesToFile(const std::vector<PlayerBoundingBox>& boxes,
+                              const std::string& filePath);
+void saveBoundingBoxesOnImage(
+    const cv::Mat& img, const std::vector<PlayerBoundingBox>& boundingBoxes,
+    const std::string& outputFileName);
 };  // namespace Utils
 
 #endif  // UTILS_HPP

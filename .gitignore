@@ -11,6 +11,7 @@ opencv_build/
 *.zip
 
 # Dataset
+dataset
 data/*
 !data/data_processing
 data/data_processing/*
