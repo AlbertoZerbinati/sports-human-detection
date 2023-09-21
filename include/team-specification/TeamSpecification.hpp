@@ -15,7 +15,7 @@
 namespace TeamSpecification {
 
 cv::Vec3b findDominantColor(
-    cv::Mat temp, bool ignoreTeamColors,
+    cv::Mat matrix, bool ignoreTeamColors,
     std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors);
 
 };  // namespace TeamSpecification
