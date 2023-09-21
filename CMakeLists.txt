@@ -20,25 +20,17 @@ set(CMAKE_CXX_STANDARD 14)
 
 # Source files
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*/*.cpp")
+file(GLOB_RECURSE TEST_SOURCES_1 "test/PeopleDetectorTest.cpp" "src/*/*.cpp")
+file(GLOB_RECURSE TEST_SOURCES_2 "test/PeopleDetectorAndSegmentationTest.cpp" "src/*/*.cpp")
 
-# file(GLOB_RECURSE TEST_SOURCES_1 "test/PeopleDetectorTest.cpp" "src/*/*.cpp")
-# file(GLOB_RECURSE TEST_SOURCES_2 "test/PeopleDetectorAndSegmentationTest.cpp" "src/*/*.cpp")
-# file(GLOB_RECURSE TEST_SOURCES_3 "test/DetectorSegmentationTeamTest.cpp" "src/*/*.cpp")
-# file(GLOB_RECURSE TEST_SOURCES_4 "test/DetectSegmentTeamFieldTest.cpp" "src/*/*.cpp")
-
-# Add executable
+# Add main executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Add tests executable
-# add_executable(test_detector ${TEST_SOURCES_1})
-# add_executable(test_detector_segmentation ${TEST_SOURCES_2})
-# add_executable(test_detector_segmentation_team ${TEST_SOURCES_3})
-# add_executable(test_detect_segment_team_field ${TEST_SOURCES_4})
+add_executable(test_detector ${TEST_SOURCES_1})
+add_executable(test_detector_segmentation ${TEST_SOURCES_2})
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-# target_link_libraries(test_detector ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-# target_link_libraries(test_detector_segmentation ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-# target_link_libraries(test_detector_segmentation_team ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-# target_link_libraries(test_detect_segment_team_field ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_link_libraries(test_detector ${OpenCV_LIBS} ${TORCH_LIBRARIES})
+target_link_libraries(test_detector_segmentation ${OpenCV_LIBS} ${TORCH_LIBRARIES})
