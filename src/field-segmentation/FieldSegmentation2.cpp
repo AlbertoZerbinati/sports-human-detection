@@ -1,6 +1,6 @@
 // Alberto Zerbinati
 
-#include "field-detection/FieldSegmentation.hpp"
+#include "field-segmentation/FieldSegmentation.hpp"
 #include "utils/Utils.hpp"
 
 cv::Mat FieldSegmentation::colorFieldSegmentation(

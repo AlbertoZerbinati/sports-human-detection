@@ -1,8 +1,8 @@
 // Marco Calì
 
-#include "field-detection/FieldSegmentation.hpp"
+#include "field-segmentation/FieldSegmentation.hpp"
 
-#include "field-detection/GreenFieldSegmentation.hpp"
+#include "field-segmentation/GreenFieldSegmentation.hpp"
 
 cv::Mat FieldSegmentation::segmentField(const cv::Mat &src,
                                         const cv::Vec3b estimatedColor) {

@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include <tuple>
 
-#include "field-detection/FieldSegmentation.hpp"
+#include "field-segmentation/FieldSegmentation.hpp"
 #include "utils/Utils.hpp"
 
 struct ExtendedPlayer : Player {

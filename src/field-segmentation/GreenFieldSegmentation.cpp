@@ -1,6 +1,6 @@
 // Marco Calì
 
-#include "field-detection/GreenFieldSegmentation.hpp"
+#include "field-segmentation/GreenFieldSegmentation.hpp"
 
 cv::Mat GreenFieldSegmentation::detectGreenField(const cv::Mat &I) {
     // Initialize variables and parameters

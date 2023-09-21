@@ -3,7 +3,7 @@
 // #include <iostream>
 // #include <opencv2/opencv.hpp>
 
-// #include "field-detection/FieldSegmentation.hpp"
+// #include "field-segmentation/FieldSegmentation.hpp"
 // #include "people-detection/PeopleDetector.hpp"
 // #include "people-segmentation/PeopleSegmentation.hpp"
 // #include "team-specification/TeamSpecification.hpp"
