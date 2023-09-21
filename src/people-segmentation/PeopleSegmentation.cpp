@@ -1,133 +1,140 @@
-// Sedusi Marco
+/*
+@Author Sedusi Marco
+@Date 18-09-2023
+Project-Name:sport-human-detectin
+Task:people-segmentation
+*/
 
 #include "people-segmentation/PeopleSegmentation.hpp"
-
 #include "team-specification/TeamSpecification.hpp"
 
-// packages
+// Packages
 #include <iostream>
-
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 
-// namespace
-using namespace cv;
-using namespace std;
 
-// skin-detection-function
-/**/
-Mat PeopleSegmentation::skinDetect(const Mat& original) {
-    // support Mat var
-    // convert the image to the HSV color space
-    Mat img_HSV;
-    cvtColor(original, img_HSV, COLOR_BGR2HSV);
 
-    // lower and upper bounds for skin color in HSV
-    // colors are described by yours Hue, Saturation and Value in the range
-    // [0,255]
-    Scalar lowerBound(0, 30, 70);
-    Scalar upperBound(27, 150, 220);
+// Skin-Detection function
+/* Parameters: original image 
+ * destination image is the original image with only the skin detected */
+void PeopleSegmentation::skinDetect(const Mat& original,Mat& dest) {
+    // Support Mat var
+    // Convert the image from BGR to the HSV color space
+    cv::Mat img_HSV;
+    cv::cvtColor(original, img_HSV, cv::COLOR_BGR2HSV);
 
-    // create a mask for skin color within the specified range described above
-    Mat skin;
-    inRange(img_HSV, lowerBound, upperBound, skin);
+    // Lower and upper bounds for skin color in HSV
+    // Colors are described by Hue, Saturation and Value
+    cv::Scalar lowerBound(0, 30, 70);
+    cv::Scalar upperBound(27, 150, 220);
 
-    // apply the mask to the originalal image
-    // define a kernel
-    Mat kernel = getStructuringElement(MORPH_ELLIPSE, Size(5, 5));
+    // Create a mask for skin color within the specified range described above
+    cv::Mat skin;
+    cv::inRange(img_HSV, lowerBound, upperBound, skin);
 
-    // apply morphological operations
-    morphologyEx(skin, skin, MORPH_OPEN, kernel);
-    morphologyEx(skin, skin, MORPH_CLOSE, kernel);
-    Mat final;
-    bitwise_and(original, original, final, skin);
+    // Apply the mask to the original image
+    // Define a kernel
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5));
 
-    // return the result (skin detection)
-    return final;
+    // Perform Morphological operations in order to remove small noise with the Opening operation, Closing operation is used to fill small gaps in the detected regions
+    cv::morphologyEx(skin, skin, cv::MORPH_OPEN, kernel);
+    cv::morphologyEx(skin, skin, cv::MORPH_CLOSE, kernel);
+    
+    // We have used the bitwise_and function in order to combine the original image with the skin mask obtained
+    // This operation keeps only the parts of the original image that correspond to the white regions of the skin mask, effectively highlighting the detected skin regions while blacking out other areas
+    cv::bitwise_and(original, original, dest, skin);
+
 }
 
-Mat PeopleSegmentation::peopleSegm(const Mat& original) {
-    // define the support images
-    Mat mask = Mat::zeros(original.cols, original.rows, CV_8UC1);
-    Mat bgdModel;
-    Mat fgdModel;
 
-    int x = original.cols;
+// People-Segmentation function
+/* Parameters: original image 
+ * destination image is the original image with only person segmentation */
+void PeopleSegmentation::peopleSegm(const Mat& original,Mat& dest) {
+	
+    // Define the support images
+    cv::Mat mask = Mat::zeros(original.cols, original.rows, CV_8UC1);
+    cv::Mat bgdModel;
+    cv::Mat fgdModel;
+    
+	int x = original.cols;
     int y = original.rows;
-
-    // different rect size for grabcut algorithm are taken into account, in
-    // order to recognize the subject in the bounding box
-
-    // case 4:3
+    
+    
+	// Aspect ratio consideration
+    // Different rect size for grabcut algorithm are taken into account, in order to recognize the subject in the bounding box
+    
+    
+    /* Grabcut parameters:
+     * original is the input image 
+     * mask serves as an initial mask for the algorithm. The mask is used to specify which parts of the image are known foreground, known background, probable foreground, and probable background. It is modified by the grabCut algorithm during its execution to refine the segmentation.
+     * rect defines a rectangular region in the original image.
+     * bgdModel and fdgModel are matrices used by the grabCut algorithm to model the foreground and background. 
+     * 10 is the number of iterations the grabCut algorithm should run for.
+     * GC_INIT_WITH_RECT is a flag that is used to specify the initialization method for the algorithm. In this case, it indicates that the algorithm should be initialized using the rectangular region defined by the rect parameter.
+     * */
+     
+    // Case 4:3
     if (y > x + (x / 3)) {
-        // img too small
+        
         if (y < 200) {
-            Rect rect = Rect(x / 8, y / 20, x - (x / 8), y - (y / 18));
-            grabCut(original, mask, rect, bgdModel, fgdModel, 10,
-                    GC_INIT_WITH_RECT);
+            cv::Rect rect = Rect(x / 8, y / 20, x - (x / 8), y - (y / 18));
+            cv::grabCut(original, mask, rect, bgdModel, fgdModel, 10,
+                    cv::GC_INIT_WITH_RECT);
         } else {
-            Rect rect = Rect(x / 8, y / 20, x - (x / 5), y - (y / 9));
-            grabCut(original, mask, rect, bgdModel, fgdModel, 10,
-                    GC_INIT_WITH_RECT);
+            cv::Rect rect = Rect(x / 8, y / 20, x - (x / 5), y - (y / 9));
+            cv::grabCut(original, mask, rect, bgdModel, fgdModel, 10,
+                    cv::GC_INIT_WITH_RECT);
         }
-        // Rect rect = Rect(x/8, y/20,x-(x/5), y-(y/20));
 
     }
-    // case 16:9
+    // Case 16:9
     else if (y + (y / 3) < x) {
-        Rect rect = Rect(x / 4, y / 6, x - (x / 4), y - (y / 6));
-        grabCut(original, mask, rect, bgdModel, fgdModel, 10,
-                GC_INIT_WITH_RECT);
+        cv::Rect rect = Rect(x / 4, y / 6, x - (x / 4), y - (y / 6));
+        cv::grabCut(original, mask, rect, bgdModel, fgdModel, 10,
+                cv::GC_INIT_WITH_RECT);
     }
-    // case 1:1
+    // Case 1:1
     else {
-        Rect rect = Rect(x / 6, y / 9, x - (x / 4) - (x / 7), y - (y / 4));
-        grabCut(original, mask, rect, bgdModel, fgdModel, 10,
-                GC_INIT_WITH_RECT);
+        cv::Rect rect = Rect(x / 6, y / 9, x - (x / 4) - (x / 7), y - (y / 4));
+        cv::grabCut(original, mask, rect, bgdModel, fgdModel, 10,
+                cv::GC_INIT_WITH_RECT);
     }
-    // Rect rect=Rect(5, 5, src.cols - 6, src.rows - 6);
-    // grabCut(src, mask, rect, bgdModel, fgdModel, 10, GC_INIT_WITH_RECT);
-    // support mask in order to take only the pixels marked are foreground by
-    // grabcut
-    Mat mask2 = (mask == 1) + (mask == 3);
+    
+    // Take only pixels segmented as foreground
+    cv::Mat mask2 = (mask == 1) + (mask == 3);
+    original.copyTo(dest, mask2);
 
-    Mat result(original.cols, original.rows, CV_8UC3);
-    original.copyTo(result, mask2);
-
-    return result;
 }
 
-/*Function to merge results image obtained from skin-detection and
- * people-segmentation into an unique image*/
-Mat PeopleSegmentation::segmentPeople(const Mat& original) {
-    // temp vars
-    Mat temp_1 = Mat::zeros(original.cols, original.rows, CV_8UC3);
-    Mat temp_2 = Mat::zeros(original.cols, original.rows, CV_8UC3);
+/*  SegmentPeople function merging images obtained from skin-detection and people-segmentation into an unique image*/
+ /* Parameters: original image 
+  * destination image is the original image with only person segmentation and skin detection */
+void PeopleSegmentation::segmentPeople(const Mat& original,Mat& dest) {
+    // Support vars
+    cv::Mat skinResult = Mat::zeros(original.cols, original.rows, CV_8UC3);
+    cv::Mat peopleResult = Mat::zeros(original.cols, original.rows, CV_8UC3);
+    cv::Mat dest = Mat::zeros(original.cols, original.rows, CV_8UC3);
 
-    // call function
-    temp_1 = skinDetect(original);
-    temp_2 = peopleSegm(original);
-
-    // merge the two images
+    // Call function
+    cv::skinDetect(original,skinResult);
+    cv::peopleSegm(original,peopleResult);
+    
+    // Merge the two mask
+	dest=skinResult+peopleResult;
+    
+    // Clean the image after processing
     for (int i = 0; i < original.rows; i++) {
         for (int j = 0; j < original.cols; j++) {
-            temp_2.at<Vec3b>(i, j)[0] += temp_1.at<Vec3b>(i, j)[0];
-            temp_2.at<Vec3b>(i, j)[1] += temp_1.at<Vec3b>(i, j)[1];
-            temp_2.at<Vec3b>(i, j)[2] += temp_1.at<Vec3b>(i, j)[2];
-        }
-    }
-
-    // clean the image after processing
-    for (int i = 0; i < original.rows; i++) {
-        for (int j = 0; j < original.cols; j++) {
-            if (!(temp_2.at<Vec3b>(i, j)[0] == 0 &&
-                  temp_2.at<Vec3b>(i, j)[1] == 0 &&
-                  temp_2.at<Vec3b>(i, j)[2] == 0)) {
-                temp_2.at<Vec3b>(i, j)[0] = original.at<Vec3b>(i, j)[0];
-                temp_2.at<Vec3b>(i, j)[1] = original.at<Vec3b>(i, j)[1];
-                temp_2.at<Vec3b>(i, j)[2] = original.at<Vec3b>(i, j)[2];
+            if (!(dest.at<Vec3b>(i, j)[0] == 0 &&
+                  dest.at<Vec3b>(i, j)[1] == 0 &&
+                  dest.at<Vec3b>(i, j)[2] == 0)) {
+                dest.at<Vec3b>(i, j)[0] = original.at<Vec3b>(i, j)[0];
+                dest.at<Vec3b>(i, j)[1] = original.at<Vec3b>(i, j)[1];
+                dest.at<Vec3b>(i, j)[2] = original.at<Vec3b>(i, j)[2];
             }
         }
     }
@@ -176,5 +183,5 @@ Mat PeopleSegmentation::segmentPeople(const Mat& original) {
     //     }
     // }
 
-    return temp_2;
+    
 }
