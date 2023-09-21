@@ -15,9 +15,11 @@ using namespace std;
 
 class PeopleSegmentation {
    public:
-    Mat skinDetect(Mat original);
-    Mat peopleSegm(Mat original);
-    Mat merger(Mat original);
+    Mat segmentPeople(const Mat& original);
+
+   private:
+    Mat skinDetect(const Mat& original);
+    Mat peopleSegm(const Mat& original);
 };
 
 #endif  // PEOPLE_SEGMENTATION_HPP
