@@ -126,7 +126,7 @@ PipelineRunOutput Pipeline::run() {
               << (int)fieldColor[1] << ", " << (int)fieldColor[2] << std::endl;
 
     // perform field segmentation on the whole image
-    cv::Mat fieldSegmentationMat = FieldSegmentation(image_clone, fieldColor);
+    cv::Mat fieldSegmentationMat = fieldSegmentation(image_clone, fieldColor);
 
     // find team 1 color
     max = 0;

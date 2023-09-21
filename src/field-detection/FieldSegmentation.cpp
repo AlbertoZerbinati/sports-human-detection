@@ -4,7 +4,7 @@
 
 // TODO: refactor into class
 
-cv::Mat GreenFieldsSegmentation(const cv::Mat &I) {
+cv::Mat greenFieldSegmentation(const cv::Mat &I) {
     // White Lines Removal Through Opening Morphological Operator on the
     // lower-resolution image
     cv::Mat imageOpen;
@@ -70,7 +70,7 @@ cv::Mat GreenFieldsSegmentation(const cv::Mat &I) {
     return mask2.clone();
 }
 
-cv::Mat ColorFieldSegmentation(const cv::Mat &image,
+cv::Mat colorFieldSegmentation(const cv::Mat &image,
                                const cv::Vec3b estimatedColor) {
     cv::Mat mask = cv::Mat::zeros(image.size(), CV_8U);
     int threshold = 25;
@@ -93,16 +93,16 @@ cv::Mat ColorFieldSegmentation(const cv::Mat &image,
     return mask.clone();
 }
 
-cv::Mat FieldSegmentation(const cv::Mat &src, const cv::Vec3b estimatedColor) {
+cv::Mat fieldSegmentation(const cv::Mat &src, const cv::Vec3b estimatedColor) {
     cv::Mat mask;
     int blue = estimatedColor[0];
     int green = estimatedColor[1];
     int red = estimatedColor[2];
-    mask = GreenFieldsSegmentation(src);
+    mask = greenFieldSegmentation(src);
 
     // if mask is empty or so, then use the color segmentation method
     if (cv::countNonZero(mask) < 250)
-        mask = ColorFieldSegmentation(src, estimatedColor);  // fallback method
+        mask = colorFieldSegmentation(src, estimatedColor);  // fallback method
 
     return mask.clone();
 }
