@@ -3,40 +3,46 @@
 #include "field-detection/GreenFieldSegmentation.hpp"
 
 cv::Mat GreenFieldSegmentation::detectGreenField(const cv::Mat &I) {
+    // Initialize variables and parameters
     cv::Mat imageOpen;
-    double alpha_e = 0.5;
+    double alpha_e = 0.5;  // Opening operation parameter
 
+    // Preprocess the input image using opening operation
     preprocessing(I, imageOpen, alpha_e);
 
-    // Green Chromaticity Analysis
+    // Perform Green Chromaticity Analysis on the preprocessed image
     cv::Mat imageGCA;
     chromaticityAnalysis(imageOpen, imageGCA);
     imageGCA.convertTo(imageGCA, CV_32F, 1 / 255.0);
 
-    // Adjust the scale factor as for speeding up the training
+    // Adjust the scale factor to speed up training
     double scaleFactor = 0.1;
     cv::Size lowerSizeImage(imageGCA.cols * scaleFactor,
                             imageGCA.rows * scaleFactor);
     cv::Mat reducedImageGCA;
     resize(imageGCA, reducedImageGCA, lowerSizeImage);
 
+    // Reshape the image for GMM training
     cv::Mat samples =
         reducedImageGCA.reshape(1, reducedImageGCA.rows * reducedImageGCA.cols);
 
-    // Number of Gaussian distributions used for the E-M algorithm.
+    // Number of Gaussian distributions used for the E-M algorithm
     int N_G = 6;
 
+    // Initialize variables for GMM training
     cv::Mat logLikelihoods, labels, probs;
     cv::Ptr<cv::ml::EM> gmm = cv::ml::EM::create();
+
+    // Train the Gaussian Mixture Model
     trainGMM(gmm, samples, N_G, logLikelihoods, labels, probs);
 
-    // Get covariance of each Gaussian
+    // Get covariance matrices, means, and weights from the trained GMM
     std::vector<cv::Mat> covs;
     gmm->getCovs(covs);
     cv::Mat means = gmm->getMeans();
     cv::Mat weights = gmm->getWeights();
 
-    // Compute PDF
+    // Compute the PDF over a range of "g" values from 0 to 1
     int numPoints = 1000;
     double gMin = 0.0;  // Minimum possible "g" value
     double gMax = 1.0;  // Maximum possible "g" value
@@ -46,39 +52,56 @@ cv::Mat GreenFieldSegmentation::detectGreenField(const cv::Mat &I) {
     for (int i = 0; i < numPoints; ++i) g.at<double>(0, i) = gMin + i * step;
 
     cv::Mat pdf = computePDF(N_G, numPoints, means, covs, weights, g);
-    // Now choose T_G
+
+    // Choose a threshold T_G based on PDF characteristics
     double T = 1.0 / 4.0;
     double m0 = findFirstMinimumAfterIndex(
         pdf, g, findFirstMaximumAfterThreshold(pdf, g, T));
     double T_G = std::max(T, m0);
+
+    // Generate the first mask (mask1) based on the threshold T_G
     cv::Mat mask1 = computeMask1(T_G, imageGCA);
 
+    // Create an envelope representing the GMM distribution
     cv::Mat envelope = createEnvelope(covs, means, weights, numPoints, N_G);
+
+    // Find local minima in the envelope
     std::vector<LocalMinimum> minima = findLocalMinima(envelope, g, T_G);
 
+    // Define a threshold for chromatic distortion
     double T_C = 0.15;
+
+    // Compute the chromatic distortion matrix
     cv::Mat cd_matrix =
         chromaticDistortionMatrix(imageGCA, imageOpen, T_G, minima);
+
+    // Generate the second mask (mask2) based on the chromatic distortion and
+    // mask1
     cv::Mat mask2 = computeMask2(T_C, mask1, cd_matrix);
 
-    // Let's apply the opening to the mask
+    // Apply opening operation to the mask
     preprocessing(mask2, mask2, alpha_e);
-    return mask2.clone();
+
+    return mask2.clone();  // Return the final mask2
 }
 
 void GreenFieldSegmentation::preprocessing(const cv::Mat &src, cv::Mat &dst,
                                            const double alpha_e) {
-    // The opening operation is based on the size of the image
+    // Calculate the diameter of the opening structure based on image size and
+    // alpha_e
     int H = src.rows;
     int W = src.cols;
     int diameter = 2 * int(ceil(alpha_e / 100 * sqrt(pow(H, 2) + pow(W, 2))));
 
-    // Ensure the kernel has odd dimensions
+    // Ensure the kernel has odd dimensions by adding 1 if it's even
     if (diameter % 2 == 0) diameter++;
 
-    // cout << "Diameter of opening structure: " << diameter << endl;
+    // Create a circular structuring element with the calculated diameter
     cv::Size size = cv::Size(diameter, diameter);
     cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, size);
+
+    // Apply morphological opening to the input image and store the result in
+    // 'dst'
     cv::morphologyEx(src, dst, cv::MORPH_OPEN, element);
 }
 
@@ -88,29 +111,38 @@ void GreenFieldSegmentation::chromaticityAnalysis(const cv::Mat &src,
     dst.create(src.size(),
                CV_8UC1);  // CV_8UC1 for single-channel (grayscale) image
 
-    src.forEach<cv::Vec3b>(
-        [&dst](cv::Vec3b &pixel, const int *position) -> void {
-            int B = pixel[0];  // Blue channel value
-            int G = pixel[1];  // Green channel value
-            int R = pixel[2];  // Red channel value
+    // Iterate over each pixel in the source image
+    src.forEach<cv::Vec3b>([&dst](cv::Vec3b &pixel,
+                                  const int *position) -> void {
+        int B = pixel[0];  // Blue channel value
+        int G = pixel[1];  // Green channel value
+        int R = pixel[2];  // Red channel value
 
-            // Compute g(r,c) using the formula
-            float greenChromaticity = static_cast<float>(G) / (G + R + B);
+        // Calculate g(r, c) using the formula (green chromaticity)
+        float greenChromaticity = static_cast<float>(G) / (G + R + B);
 
-            // Update the corresponding pixel in the destination matrix
-            dst.at<uchar>(position[0], position[1]) =
-                static_cast<uchar>(greenChromaticity * 255);
-        });
+        // Update the corresponding pixel in the destination matrix
+        dst.at<uchar>(position[0], position[1]) =
+            static_cast<uchar>(greenChromaticity * 255);  // Scale to [0, 255]
+    });
 }
 
 void GreenFieldSegmentation::trainGMM(cv::Ptr<cv::ml::EM> &gmm,
                                       const cv::Mat &samples, const int N_G,
                                       cv::Mat &logLikelihoods, cv::Mat &labels,
                                       cv::Mat &probs) {
+    // Set the number of Gaussian components in the GMM
     gmm->setClustersNumber(N_G);
+
+    // Set the covariance matrix type to diagonal
     gmm->setCovarianceMatrixType(cv::ml::EM::COV_MAT_DIAGONAL);
+
+    // Print a message indicating the training parameters
     std::cout << "Training over " << samples.rows << " samples and "
               << std::to_string(N_G) << " Gaussians" << std::endl;
+
+    // Train the GMM using the provided samples, storing log-likelihoods,
+    // labels, and probabilities
     gmm->trainEM(samples, logLikelihoods, labels, probs);
 }
 
@@ -130,6 +162,7 @@ cv::Mat GreenFieldSegmentation::computePDF(const int N_G, const int numPoints,
 
     // Loop through each Gaussian component
     for (int i = 0; i < N_G; ++i) {
+        // Extract parameters for the current Gaussian component
         double mean = means.at<double>(0, i);
         double variance = covs[i].at<double>(0, 0);
         double weight = weights.at<double>(0, i);
@@ -146,34 +179,40 @@ cv::Mat GreenFieldSegmentation::computePDF(const int N_G, const int numPoints,
         sumPDF += pdf;
     }
 
+    // Return a copy of the sum of PDFs
     return sumPDF.clone();
 }
 
 cv::Mat GreenFieldSegmentation::computeMask1(const double threshold,
                                              const cv::Mat &chromaticity) {
+    // Create an empty binary mask with the same size as the chromaticity image
     cv::Mat mask = cv::Mat::zeros(chromaticity.size(), CV_8U);
 
-    // Iterate through each pixel of the images
+    // Iterate through each pixel in the chromaticity image
     for (int y = 0; y < chromaticity.rows; ++y) {
         for (int x = 0; x < chromaticity.cols; ++x) {
-            // Get the pixel intensity at (x, y) (green chromaticity value)
+            // Get the chromaticity value at (x, y)
             double pixel_value =
                 static_cast<double>(chromaticity.at<float>(y, x));
-            // Compare the pixel intensity with m0 and set to white if greater
-            // than T_G
-            if (pixel_value > threshold) mask.at<uchar>(y, x) = 255;
+
+            // Compare the chromaticity value with the threshold and set to
+            // white if it exceeds the threshold
+            if (pixel_value > threshold) {
+                mask.at<uchar>(y, x) = 255;  // Set the pixel as white (field)
+            }
         }
     }
+
+    // Return a copy of the binary mask
     return mask.clone();
 }
 
-int GreenFieldSegmentation::findFirstMaximumAfterThreshold(const cv::Mat &pdf,
-                                                           const cv::Mat &g,
-                                                           double threshold) {
+int GreenFieldSegmentation::findFirstMaximumAfterThreshold(
+    const cv::Mat &pdf, const cv::Mat &g, const double threshold) {
     int numPoints = pdf.cols;
     bool foundThreshold = false;
 
-    // Initialize variables to track maximum
+    // Initialize variables to track the maximum
     double maximumValue = 0.0;
     int maximumIndex = -1;
 
@@ -181,7 +220,7 @@ int GreenFieldSegmentation::findFirstMaximumAfterThreshold(const cv::Mat &pdf,
     for (int i = 0; i < numPoints; ++i) {
         double currentValue = pdf.at<double>(0, i);
 
-        // Check if we found the threshold (x > 1/3)
+        // Check if we found the threshold (x > threshold)
         if (!foundThreshold && g.at<double>(0, i) > threshold) {
             foundThreshold = true;
         }
@@ -198,6 +237,7 @@ int GreenFieldSegmentation::findFirstMaximumAfterThreshold(const cv::Mat &pdf,
         }
     }
 
+    // Return the index of the first maximum value found after the threshold
     return maximumIndex;
 }
 
@@ -206,7 +246,7 @@ double GreenFieldSegmentation::findFirstMinimumAfterIndex(const cv::Mat &pdf,
                                                           int index) {
     int numPoints = pdf.cols;
 
-    // Initialize variables to track minimum
+    // Initialize variables to track the minimum
     double minimumValue = 0.0;
     int minimumIndex = -1;
 
@@ -214,7 +254,7 @@ double GreenFieldSegmentation::findFirstMinimumAfterIndex(const cv::Mat &pdf,
     for (int i = index; i < numPoints; ++i) {
         double currentValue = pdf.at<double>(0, i);
 
-        // Search for the first minimum
+        // Search for the first local minimum
         if (currentValue < minimumValue || minimumIndex == -1) {
             minimumValue = currentValue;
             minimumIndex = i;
@@ -224,9 +264,10 @@ double GreenFieldSegmentation::findFirstMinimumAfterIndex(const cv::Mat &pdf,
         }
     }
 
-    // Check if we found the first minimum after the given index
+    // Check if we found the first local minimum after the given index
     if (minimumIndex != -1)
-        return g.at<double>(0, minimumIndex);
+        return g.at<double>(
+            0, minimumIndex);  // Return the value of the local minimum
     else
         return -1.0;  // No suitable local minimum found
 }
@@ -270,6 +311,8 @@ cv::Mat GreenFieldSegmentation::createEnvelope(const std::vector<cv::Mat> &covs,
 
         yValues.clear();
     }
+
+    // Return a copy of the envelope
     return envelope.clone();
 }
 
@@ -284,6 +327,8 @@ std::vector<LocalMinimum> GreenFieldSegmentation::findLocalMinima(
         double prevElement = envelope.at<double>(0, i - 1);
         double nextElement = envelope.at<double>(0, i + 1);
         x = g.at<double>(0, i);
+
+        // Check if the current element is a local minimum
         if (currentElement < prevElement && currentElement < nextElement &&
             x > threshold) {
             LocalMinimum minimum;
@@ -312,12 +357,17 @@ float GreenFieldSegmentation::computeChromaticDistortion(cv::Vec3b v,
 
 std::vector<cv::Vec3b> GreenFieldSegmentation::computeMeanColors(
     std::vector<PixelInfo> pixels, std::vector<int> counts) {
+    // Vector to store the mean colors
     std::vector<cv::Vec3b> means;
+    // Vector to store the sum of pixel values for each group
     std::vector<cv::Vec3f> sums;
 
+    // Initialize sums with zero vectors for each group
     for (int count = 0; count < counts.size() + 1; count++)
         sums.push_back(cv::Vec3f(0, 0, 0));
 
+    // Calculate the sum of pixel values for each group
+    // Group 0 doesn't interest us, as it contains values pre-threshold.
     for (PixelInfo pixel : pixels) {
         int group = pixel.group;
         if (group != 0)
@@ -325,30 +375,36 @@ std::vector<cv::Vec3b> GreenFieldSegmentation::computeMeanColors(
                 cv::Vec3f(pixel.pixel[0], pixel.pixel[1], pixel.pixel[2]);
     }
 
+    // Calculate the mean colors for each group
     for (int count = 0; count < counts.size(); count++) {
+        // Compute the mean color by dividing the sum by the number of pixels in
+        // the group
         cv::Vec3f mean = sums[count] / static_cast<float>(counts[count]);
         cv::Vec3b mean_color(static_cast<uchar>(mean_color[0]),
                              static_cast<uchar>(mean_color[1]),
                              static_cast<uchar>(mean_color[2]));
+        // Store the mean color in the result vector
         means.push_back(mean_color);
     }
+    // Return the vector of mean colors
     return means;
 }
 
 cv::Mat GreenFieldSegmentation::chromaticDistortionMatrix(
     const cv::Mat &imageGCA, const cv::Mat &imageOpen, const double T_G,
     const std::vector<LocalMinimum> &minima) {
-    std::vector<PixelInfo> pixels;
+    std::vector<PixelInfo> pixels;  // Vector to store pixel information
     int numMinima = minima.size();
+
     if (numMinima == 0) {
-        // cout << "No minima found, returning 0.0 matrix" << endl;
+        // No minima found, return a matrix of zeros so that mask1 is used.
         return cv::Mat(imageOpen.size(), CV_32F, cv::Scalar(0.0));
     }
 
     std::vector<int> counts(numMinima + 2,
                             0);  // Initialize counts for each range
 
-    // Assign each pixel to a cluster
+    // Assign each pixel to a cluster based on green chromaticity values
     for (int y = 0; y < imageOpen.rows; ++y) {
         for (int x = 0; x < imageOpen.cols; ++x) {
             PixelInfo pixel;
@@ -356,8 +412,10 @@ cv::Mat GreenFieldSegmentation::chromaticDistortionMatrix(
 
             float gValue = imageGCA.at<float>(y, x);
 
-            // Find the appropriate range for the pixel
             int range = 0;
+
+            // Determine the range for the pixel based on its green chromaticity
+            // value
             if (gValue < T_G && gValue > 0)
                 range = 0;
             else if (gValue > T_G && gValue < minima[0].x)
@@ -373,37 +431,31 @@ cv::Mat GreenFieldSegmentation::chromaticDistortionMatrix(
                     }
                 }
             }
+
             pixel.group = range;
             counts[range]++;
             pixels.push_back(pixel);
         }
     }
 
-    // Compute the mean for each cluster
+    // Compute the mean colors for each cluster
     std::vector<cv::Vec3b> avgs = computeMeanColors(pixels, counts);
 
-    // Compute the distorsion value for each pixel depending on the cluster
+    // Create a matrix to store the chromatic distortion values
     cv::Mat cd_matrix(imageOpen.rows, imageOpen.cols, CV_32F);
 
-    int height = imageOpen.rows;
-    int width = imageOpen.cols;
-
+    // Create a matrix to store the cluster assignments for each pixel
     cv::Mat groupMatrix(imageOpen.rows, imageOpen.cols, CV_8U);
 
-    // Assign each pixel to a cluster based on the information in the pixels
-    // vector
+    // Assign each pixel to a cluster based on information in the pixels vector
     for (int y = 0; y < imageOpen.rows; ++y) {
         for (int x = 0; x < imageOpen.cols; ++x) {
-            // Get the cluster assignment from the corresponding pixel in the
-            // pixels vector
             int cluster = pixels[y * imageOpen.cols + x].group;
-
-            // Assign the cluster value to the corresponding location in the
-            // groupMatrix
             groupMatrix.at<uchar>(y, x) = static_cast<uchar>(cluster);
         }
     }
 
+    // Compute the chromatic distortion value for each pixel
     imageOpen.forEach<cv::Vec3b>(
         [&cd_matrix, &groupMatrix, &avgs](cv::Vec3b &pixel,
                                           const int *position) -> void {
@@ -416,7 +468,7 @@ cv::Mat GreenFieldSegmentation::chromaticDistortionMatrix(
             // Update the corresponding pixel in the destination matrix
             cd_matrix.at<float>(position[0], position[1]) = cd_value;
         });
-
+    // Return the chromatic distortion matrix
     return cd_matrix.clone();
 }
 
@@ -427,9 +479,15 @@ cv::Mat GreenFieldSegmentation::computeMask2(const double T_C,
     cv::Mat mask2(mask1.size(), CV_8U, cv::Scalar(0));
 
     // Check the condition and set values in the mask2 mask
-    for (int r = 0; r < mask1.rows; ++r)
-        for (int c = 0; c < mask1.cols; ++c)
-            if (mask1.at<uchar>(r, c) == 255 && cd_matrix.at<float>(r, c) < T_C)
+    for (int r = 0; r < mask1.rows; ++r) {
+        for (int c = 0; c < mask1.cols; ++c) {
+            if (mask1.at<uchar>(r, c) == 255 &&
+                cd_matrix.at<float>(r, c) < T_C) {
+                // Set pixel to white if condition is met
                 mask2.at<uchar>(r, c) = 255;
+            }
+        }
+    }
+    // Return the refined mask
     return mask2.clone();
 }

@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 project(sports_human_detection)
 
 # Specify the path to LibTorch (replace with your actual global path)
-list(APPEND CMAKE_PREFIX_PATH "/workspace/libtorch")
+list(APPEND CMAKE_PREFIX_PATH "/home/phoenix/Desktop/University/Control\ Systems\ Engineering/First\ Year/Second\ Semester/Computer\ Vision/sports-human-detection/libtorch")
 
 # Find packages
 find_package(OpenCV REQUIRED)
