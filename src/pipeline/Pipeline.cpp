@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 #include <tuple>
 
-#include "field-detection/FieldSegmentation.hpp"
+#include "field-segmentation/FieldSegmentation.hpp"
 #include "utils/Utils.hpp"
 
 Pipeline::Pipeline(const cv::Mat& image, std::string model_path,
@@ -124,7 +124,8 @@ PipelineRunOutput Pipeline::run() {
               << (int)fieldColor[1] << ", " << (int)fieldColor[2] << std::endl;
 
     // perform field segmentation on the whole image
-    cv::Mat fieldSegmentationMat = FieldSegmentation(image_clone, fieldColor);
+    FieldSegmentation fs = FieldSegmentation();
+    cv::Mat fieldSegmentationMat = fs.segmentField(image_clone, fieldColor);
 
     // find team 1 color
     max = 0;
