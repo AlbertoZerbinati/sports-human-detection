@@ -42,7 +42,6 @@ class GreenFieldSegmentation {
     std::vector<LocalMinimum> findLocalMinima(const cv::Mat &envelope,
                                               const cv::Mat &g,
                                               const double T_G);
-    float computeChromaticDistortion(cv::Vec3b v, cv::Vec3b u);
     cv::Mat chromaticDistortionMatrix(const cv::Mat &imageGCA,
                                       const cv::Mat &imageOpen,
                                       const double T_G,
@@ -50,5 +49,6 @@ class GreenFieldSegmentation {
     cv::Mat computeMask1(const double threshold, const cv::Mat &chromaticity);
     cv::Mat computeMask2(const double T_C, const cv::Mat &mask_M_PF_hat,
                          const cv::Mat &cd_matrix);
-    float dotProduct(cv::Vec3b v, cv::Vec3b u);
+    static float computeChromaticDistortion(cv::Vec3b v, cv::Vec3b u);
+    static float dotProduct(cv::Vec3b v, cv::Vec3b u);
 };

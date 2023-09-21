@@ -7,12 +7,12 @@
 
 class FieldSegmentation {
    public:
-    void segmentField(const cv::Mat &src, cv::Mat &dst,
-                      const cv::Vec3b estimated_field_color);
+    cv::Mat segmentField(const cv::Mat &src,
+                         const cv::Vec3b estimated_field_color);
 
    private:
-    void colorFieldSegmentation(const cv::Mat &src, cv::Mat &dst,
-                                const cv::Vec3b estimated_field_color);
+    cv::Mat colorFieldSegmentation(const cv::Mat &src,
+                                   const cv::Vec3b estimated_field_color);
 };
 
 #endif  // FIELD_SEGMENTATION_HPP

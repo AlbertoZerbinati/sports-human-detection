@@ -126,8 +126,9 @@ PipelineRunOutput Pipeline::run() {
               << (int)fieldColor[1] << ", " << (int)fieldColor[2] << std::endl;
 
     // perform field segmentation on the whole image
-    FieldSegmentation fs = FieldSegmentation(); 
+    FieldSegmentation fs = FieldSegmentation();
     cv::Mat fieldSegmentationMat = fs.segmentField(image_clone, fieldColor);
+
     // find team 1 color
     max = 0;
     cv::Vec3b team1Color;
@@ -260,8 +261,8 @@ cv::Vec3b Pipeline::extractFieldColor(const cv::Mat& originalWindow,
     std::map<cv::Vec3b, int, Utils::Vec3bCompare> emptyTeamsColors;
 
     // extract the dominant color of the field from the inverted mask
-    cv::Vec3b fieldColor =
-        TeamSpecification::findDominantColor(invertedMask, true, emptyTeamsColors);
+    cv::Vec3b fieldColor = TeamSpecification::findDominantColor(
+        invertedMask, true, emptyTeamsColors);
 
     return fieldColor;
 }
