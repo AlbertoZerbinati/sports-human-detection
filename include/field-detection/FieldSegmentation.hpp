@@ -5,13 +5,14 @@
 
 #include <opencv2/core/core.hpp>
 
-// TODO: make a class...
+class FieldSegmentation {
+   public:
+    cv::Mat segmentField(const cv::Mat &src,
+                         const cv::Vec3b estimated_field_color);
 
-// TODO: rename to lowercase...
-cv::Mat greenFieldSegmentation(const cv::Mat &I);
-cv::Mat colorFieldSegmentation(const cv::Mat &src,
-                               const cv::Vec3b estimated_field_color);
-cv::Mat fieldSegmentation(const cv::Mat &src,
-                          const cv::Vec3b estimated_field_color);
+   private:
+    cv::Mat colorFieldSegmentation(const cv::Mat &src,
+                                   const cv::Vec3b estimated_field_color);
+};
 
 #endif  // FIELD_SEGMENTATION_HPP
