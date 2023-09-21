@@ -45,7 +45,7 @@ class FieldSegmentation {
      * @return A binary mask where white pixels indicate regions similar to the
      * estimated color.
      */
-    cv::Mat colorFieldSegmentation(const cv::Mat &src,
+    cv::Mat colorFieldSegmentation(const cv::Mat &image,
                                    const cv::Vec3b estimated_field_color);
 };
 
