@@ -1,9 +1,4 @@
-/*
-@Author Sedusi Marco
-@Date 21-09-2023
-Project-Name:sport-human-detectin
-Task:team-specification
-*/
+// Sedusi Marco
 
 #include "team-specification/TeamSpecification.hpp"
 
@@ -20,12 +15,11 @@ Task:team-specification
  * is true admit to ignore the last parameters for team colors teamColors is a
  * map with dominant colors for teams found so far
  * */
-
 cv::Vec3b TeamSpecification::findDominantColor(
     cv::Mat matrix, bool ignoreTeamColors,
     std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors) {
     //	Each pixel in the image is treated as a separate data point for the
-    //clustering
+    // clustering
     cv::Mat pixels = matrix.reshape(1, matrix.rows * matrix.cols);
 
     // Convert the pixel values to floating-point type

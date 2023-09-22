@@ -1,9 +1,4 @@
-/*
-@Author Sedusi Marco
-@Date 18-09-2023
-Project-Name:sport-human-detectin
-Task:people-segmentation
-*/
+// Sedusi Marco
 
 #include "people-segmentation/PeopleSegmentation.hpp"
 
