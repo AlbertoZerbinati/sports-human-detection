@@ -2,6 +2,7 @@
 
 #include "utils/Utils.hpp"
 
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -71,6 +72,21 @@ cv::Vec3b findMostSimilarColor(
     return mostSimilarColor;
 }
 
+float colorSimilarityConfidence(cv::Vec3b color1, cv::Vec3b color2) {
+    // Confidence is calculated as the inverse of the euclidean distance between
+    // the two colors, normalized by the maximum possible distance
+
+    float distance = std::sqrt(std::pow(color1[0] - color2[0], 2) +
+                                std::pow(color1[1] - color2[1], 2) +
+                                std::pow(color1[2] - color2[2], 2));
+
+    float maxDistance =
+        std::sqrt(std::pow(255, 2) * 3);  // Max possible distance
+    float confidence = 1.0 - (distance / maxDistance);
+
+    return confidence;
+}
+
 std::vector<PlayerBoundingBox> readBoundingBoxesFromFile(std::string filePath) {
     std::vector<PlayerBoundingBox> boundingBoxes;
     std::ifstream file(filePath);
@@ -106,8 +122,8 @@ void writeBoundingBoxesToFile(const std::vector<PlayerBoundingBox>& boxes,
 
     for (const auto& box : boxes) {
         if (box.team != -1) {
-        outFile << box.x << " " << box.y << " " << box.w << " " << box.h << " "
-                << box.team << std::endl;
+            outFile << box.x << " " << box.y << " " << box.w << " " << box.h
+                    << " " << box.team << std::endl;
         }
     }
 

@@ -1,7 +1,6 @@
 // Marco Calì
 
 #include "field-segmentation/FieldSegmentation.hpp"
-
 #include "field-segmentation/GreenFieldSegmentation.hpp"
 
 cv::Mat FieldSegmentation::segmentField(const cv::Mat &src,

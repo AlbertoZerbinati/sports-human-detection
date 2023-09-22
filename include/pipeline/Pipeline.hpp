@@ -80,20 +80,24 @@ class Pipeline {
      * Extracts the dominant field color from an image window and a mask.
      * @param originalWindow Original image window.
      * @param personMask Mask for the person.
+     * @param fieldColors Map of currently found field colors. It will be
+     * updated based on the result of the function.
      * @return Dominant field color as a cv::Vec3b object.
      */
-    cv::Vec3b extractFieldColor(const cv::Mat& originalWindow,
-                                const cv::Mat& personMask);
+    cv::Vec3b extractFieldColor(
+        const cv::Mat& originalWindow, const cv::Mat& personMask,
+        std::map<cv::Vec3b, int, Utils::Vec3bCompare>& fieldColors);
 
     /**
      * Extracts the dominant team color from a mask.
      * @param mask Mask in cv::Mat format.
-     * @param teamsColors Optional map of team colors to ignore.
+     * @param teamsColors Map of currently found team colors. It will be updated
+     * based on the result of the function.
      * @return Dominant team color as a cv::Vec3b object.
      */
     cv::Vec3b extractTeamColor(
         const cv::Mat& mask,
-        std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors = {});
+        std::map<cv::Vec3b, int, Utils::Vec3bCompare>& teamColors);
 };
 
 #endif  // PIPELINE_HPP
