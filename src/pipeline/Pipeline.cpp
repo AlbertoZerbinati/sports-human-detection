@@ -10,17 +10,15 @@
 #include "field-segmentation/FieldSegmentation.hpp"
 #include "utils/Utils.hpp"
 
-struct ExtendedPlayer : Player {
-    cv::Mat colorMask;
-};
-
 Pipeline::Pipeline(const cv::Mat& image, std::string model_path,
                    std::string groundTruthBBoxesFilePath,
                    std::string groundTruthSegmentationMaskPath)
     : image_(image.clone()),
       model_path_(model_path),
       peopleDetector_(model_path),
-      peopleSegmentation_() {}
+      peopleSegmentation_(),
+      groundTruthBBoxesFilePath_(groundTruthBBoxesFilePath),
+      groundTruthSegmentationMaskPath_(groundTruthSegmentationMaskPath) {}
 
 Pipeline::~Pipeline() {
     // Cleanup if needed
@@ -29,7 +27,7 @@ Pipeline::~Pipeline() {
 PipelineRunOutput Pipeline::run() {
     // create the output variables
     PipelineRunOutput output;
-    std::vector<ExtendedPlayer> extendedPlayers;
+    std::vector<Utils::ExtendedPlayerBoundingBox> extendedPlayers;
     cv::Mat segmentationBinMask;
     cv::Mat segmentationColorMask;
 
@@ -97,7 +95,7 @@ PipelineRunOutput Pipeline::run() {
         }
 
         // Create a Player object and populate its fields (not the team yet!)
-        ExtendedPlayer player;
+        Utils::ExtendedPlayerBoundingBox player;
         player.x = window.x;
         player.y = window.y;
         player.w = window.w;
@@ -232,7 +230,7 @@ PipelineRunOutput Pipeline::run() {
 
     // cast extendedplayers to extendedPlayers because we no longer need the
     // masks
-    std::vector<Player> players;
+    std::vector<Utils::PlayerBoundingBox> players;
     for (auto& player : extendedPlayers) {
         player.colorMask.release();
         players.push_back(player);
@@ -248,8 +246,32 @@ PipelineRunOutput Pipeline::run() {
 
 PipelineEvaluateOutput Pipeline::evaluate(PipelineRunOutput detections) {
     PipelineEvaluateOutput evalOutput;
+    float mIoU;
+    float mAP;
 
-    // TODO
+    // Calculate mIoU
+    // read the ground truth segmentation mask
+    cv::Mat groundTruthSegmentationMask =
+        cv::imread(groundTruthSegmentationMaskPath_, cv::IMREAD_GRAYSCALE);
+
+    if (groundTruthSegmentationMask.empty()) {
+        std::cerr << "Error reading ground truth segmentation mask."
+                  << std::endl;
+        mIoU = 0;
+    } else {
+        mIoU = metricsEvaluator_.calculateClassesMIoU(
+            detections.segmentationBinMask, groundTruthSegmentationMask);
+    }
+
+    // Calculate mAP
+    std::vector<Utils::PlayerBoundingBox> groundTruths =
+        Utils::readBoundingBoxesFromFile(groundTruthBBoxesFilePath_);
+
+    mAP = metricsEvaluator_.calculateMAP(groundTruths, detections.boundingBoxes);
+
+    // populate the output object
+    evalOutput.mIoU = mIoU;
+    evalOutput.mAP = mAP;
 
     return evalOutput;
 }
