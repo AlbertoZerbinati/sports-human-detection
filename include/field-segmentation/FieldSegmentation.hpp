@@ -7,7 +7,7 @@
 #include <opencv2/core/core.hpp>
 
 /**
- * @brief A class for segmenting the sport field in an image.
+ * A class for segmenting the sport field in an image.
  *
  * This class provides methods for segmenting a field from an input image
  * based on the estimated field color.
@@ -15,7 +15,7 @@
 class FieldSegmentation {
    public:
     /**
-     * @brief Segment the field in an image using a two-step approach.
+     * Segment the field in an image using a two-step approach.
      *
      * This function aims to segment the field in the input image. It first
      * attempts to perform green field segmentation using the
@@ -32,7 +32,7 @@ class FieldSegmentation {
 
    private:
     /**
-     * @brief Segment the field based on color similarity to an estimated color.
+     * Segment the field based on color similarity to an estimated color.
      *
      * This function performs color-based segmentation on an input image to
      * identify regions that closely match the estimated color. It creates a

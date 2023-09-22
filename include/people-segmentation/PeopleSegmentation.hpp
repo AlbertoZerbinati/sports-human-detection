@@ -15,11 +15,11 @@ using namespace std;
 
 class PeopleSegmentation {
    public:
-    Mat segmentPeople(const Mat& original);
+    void segmentPeople(const Mat& original, Mat& dest);
 
    private:
-    Mat skinDetect(const Mat& original);
-    Mat peopleSegm(const Mat& original);
+    void skinDetect(const Mat& original, Mat& dest);
+    void peopleSegm(const Mat& original, Mat& dest);
 };
 
 #endif  // PEOPLE_SEGMENTATION_HPP

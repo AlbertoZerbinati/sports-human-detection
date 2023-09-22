@@ -65,8 +65,8 @@ int main(int argc, char** argv) {
         cv::Mat window_mat = test_image(rect);
 
         // perform people segmentation
-        cv::Mat people_segmentation_mat =
-            people_segmentation.segmentPeople(window_mat);
+        cv::Mat people_segmentation_mat;
+        people_segmentation.segmentPeople(window_mat, people_segmentation_mat);
 
         // save the image with detected people
         // the output name is just the name of the image (substring after the

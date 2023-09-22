@@ -21,7 +21,7 @@ struct PixelInfo {
 class GreenFieldSegmentation {
    public:
     /**
-     * @brief Detect green fields in an input image.
+     * Detect green fields in an input image.
      *
      * This function performs green field segmentation on the input image
      * and returns a mask highlighting the green fields.
@@ -33,7 +33,7 @@ class GreenFieldSegmentation {
 
    private:
     /**
-     * @brief Preprocess the input image by performing an opening morphological
+     * Preprocess the input image by performing an opening morphological
      * operator based on the image size.
      *
      * @param src The input image.
@@ -43,7 +43,7 @@ class GreenFieldSegmentation {
     void preprocessing(const cv::Mat &src, cv::Mat &dst, const double alpha_e);
 
     /**
-     * @brief Analyze (green) chromaticity of the input image.
+     * Analyze (green) chromaticity of the input image.
      *
      * @param src The input image.
      * @param dst The chromaticity matrix in the interval 0-255.
@@ -51,7 +51,7 @@ class GreenFieldSegmentation {
     void chromaticityAnalysis(const cv::Mat &src, cv::Mat &dst);
 
     /**
-     * @brief Train a Gaussian Mixture Model (GMM) on the input data.
+     * Train a Gaussian Mixture Model (GMM) on the input data.
      *
      * This function trains a Gaussian Mixture Model (GMM) on the provided input
      * samples. The goal is that of estimating the gaussian distributions that
@@ -72,7 +72,7 @@ class GreenFieldSegmentation {
                   cv::Mat &probs);
 
     /**
-     * @brief Compute the Gaussian probability density for a given value.
+     * Compute the Gaussian probability density for a given value.
      *
      * This function calculates the Gaussian probability density for a given
      * value `x` using the specified mean and variance parameters.
@@ -86,7 +86,7 @@ class GreenFieldSegmentation {
     double computeGaussian(double x, double mean, double variance);
 
     /**
-     * @brief Compute the Probability Density Function (PDF) of a Gaussian
+     * Compute the Probability Density Function (PDF) of a Gaussian
      * Mixture Model.
      *
      * This function calculates the PDF of a Gaussian Mixture Model (GMM) for a
@@ -110,7 +110,7 @@ class GreenFieldSegmentation {
                        const cv::Mat &g);
 
     /**
-     * @brief Find the first maximum value in the Probability Density Function
+     * Find the first maximum value in the Probability Density Function
      * (PDF) after a specified threshold on the input values.
      *
      * This function searches for the first local maximum value in the PDF
@@ -129,7 +129,7 @@ class GreenFieldSegmentation {
                                        const double threshold);
 
     /**
-     * @brief Compute the mean colors for each range between minima as specified
+     * Compute the mean colors for each range between minima as specified
      * by the paper.
      *
      * This function calculates the mean colors from a collection of pixels and
@@ -147,7 +147,7 @@ class GreenFieldSegmentation {
                                              std::vector<int> counts);
 
     /**
-     * @brief Find the first minimum value in the Probability Density Function
+     * Find the first minimum value in the Probability Density Function
      * (PDF) after a specified index.
      *
      * This function searches for the first local minimum value in the PDF
@@ -166,7 +166,7 @@ class GreenFieldSegmentation {
                                       int index);
 
     /**
-     * @brief Compute an envelope to visualize the Gaussian Mixture Model (GMM)
+     * Compute an envelope to visualize the Gaussian Mixture Model (GMM)
      * distribution.
      *
      * This function calculates an envelope that illustrates the Gaussian
@@ -192,7 +192,7 @@ class GreenFieldSegmentation {
                            int numPoints, int N_G);
 
     /**
-     * @brief Find local minima of the envelope, starting from the threshold in
+     * Find local minima of the envelope, starting from the threshold in
      * the x axis.
      *
      * This function identifies local minima within an envelope signal, such as
@@ -213,7 +213,7 @@ class GreenFieldSegmentation {
                                               const double threshold);
 
     /**
-     * @brief Calculate the chromatic distortion matrix based on image data.
+     * Calculate the chromatic distortion matrix based on image data.
      *
      * This function computes a chromatic distortion matrix by analyzing input
      * images `imageGCA` and `imageOpen`. The distortion analysis considers a
@@ -235,7 +235,7 @@ class GreenFieldSegmentation {
                                       const std::vector<LocalMinimum> &minima);
 
     /**
-     * @brief Generate a binary mask based on chromaticity values.
+     * Generate a binary mask based on chromaticity values.
      *
      * This function creates a binary mask by thresholding the input
      * chromaticity values provided in the `chromaticity` matrix. Pixels with
@@ -250,7 +250,7 @@ class GreenFieldSegmentation {
     cv::Mat computeMask1(const double threshold, const cv::Mat &chromaticity);
 
     /**
-     * @brief Generate a refined binary mask using chromatic distortion
+     * Generate a refined binary mask using chromatic distortion
      * analysis.
      *
      * This function refines a binary mask, represented by `mask1`, using
@@ -269,7 +269,7 @@ class GreenFieldSegmentation {
                          const cv::Mat &cd_matrix);
 
     /**
-     * @brief Calculate the chromatic distortion between two RGB color vectors.
+     * Calculate the chromatic distortion between two RGB color vectors.
      *
      * This static function computes the chromatic distortion between two RGB
      * color vectors, represented as `v` and `u`. It measures the dissimilarity
@@ -284,7 +284,7 @@ class GreenFieldSegmentation {
     static float computeChromaticDistortion(cv::Vec3b v, cv::Vec3b u);
 
     /**
-     * @brief Calculate the dot product between two RGB color vectors.
+     * Calculate the dot product between two RGB color vectors.
      *
      * This static function computes the dot product between two RGB color
      * vectors, represented as `v` and `u`. It provides a measure of similarity
