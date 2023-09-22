@@ -18,13 +18,13 @@ rm -rf data/negative/*
 rm -rf data/dataset/*
 
 # extract positive crops
-python data/data_processing/extract_people_from_dataset.py  \
+python3 data/data_processing/extract_people_from_dataset.py  \
     --data_folder data/images \
     --save_folder data/positive \
     --keep_percentage 1 \
 
 # extract negative crops
-python data/data_processing/extract_background_from_dataset.py \
+python3 data/data_processing/extract_background_from_dataset.py \
     --data_folder data/images \
     --save_folder data/negative \
     --keep_percentage 1 \
