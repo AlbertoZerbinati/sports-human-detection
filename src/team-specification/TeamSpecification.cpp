@@ -1,16 +1,29 @@
-// Sedusi Marco
+/*
+@Author Sedusi Marco
+@Date 21-09-2023
+Project-Name:sport-human-detectin
+Task:team-specification
+*/
 
 #include "team-specification/TeamSpecification.hpp"
-
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+/* findDominantColor 
+ * function to find k dominant colors in the image if the flag is false also for team specification task
+ * Parameters: matrix is the mask where we want to perform the dominant colors extraction
+ * ignoreTeamColors is a flag that if it is true admit to ignore the last parameters for team colors 
+ * teamColors is a map with dominant colors for teams found so far
+ * */
+ 
 cv::Vec3b TeamSpecification::findDominantColor(
-    cv::Mat temp, bool ignoreTeamColors,
+    cv::Mat matrix, bool ignoreTeamColors,
     std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors) {
+		
+	//	Each pixel in the image is treated as a separate data point for the clustering
     cv::Mat pixels = temp.reshape(1, temp.rows * temp.cols);
 
     // Convert the pixel values to floating-point type
@@ -20,30 +33,20 @@ cv::Vec3b TeamSpecification::findDominantColor(
     int k = 2;
 
     // Criteria for K-means algorithm
-    // TermCriteria is a class in OpenCV used to define termination criteria
-    // for iterative algorithms. It allows you to specify when an iterative
-    // algorithm should stop based on certain conditions. TermCriteria::EPS:
-    // This criterion checks whether the desired accuracy (epsilon) is
-    // achieved. In other words, the algorithm will stop if the change in
-    // the value being optimized falls below a certain threshold (epsilon).
-    // TermCriteria::MAX_ITER: This criterion checks whether the maximum
-    // number of iterations is reached. The algorithm will stop if it has
-    // performed a specified maximum number of iterations. maxCount: This
-    // parameter is set to 100, which means that the algorithm will stop
-    // after 100 iterations if the TermCriteria::MAX_ITER condition is not
-    // met. epsilon: This parameter is set to 0.2. It defines the desired
-    // accuracy (epsilon) for the optimization process. If the change in the
-    // value being optimized falls below this threshold, the algorithm will
-    // stop if the TermCriteria::EPS condition is not met.
+    // TermCriteria is a class in OpenCV used to define termination criteria for iterative algorithms. It allows you to specify when an iterative algorithm should stop based on certain conditions.
+    // EPS checks whether the desired accuracy (epsilon) is achieved. In other words, the algorithm will stop if the change in the value being optimized falls below a certain threshold (epsilon).
+    // MAX_ITER checks whether the maximum number of iterations is reached. The algorithm will stop if it has performed a specified maximum number of iterations. 
+    // maxCount: This parameter is set to 100, which means that the algorithm will stop after 100 iterations if the MAX_ITER condition is not met.
+    // epsilon is set to 0.2. It defines the desired accuracy for the optimization process. 
 
-    cv::TermCriteria criteria(
-        cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.2);
+    cv::TermCriteria criteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.2);
 
     // Perform K-means clustering
     cv::Mat labels, centers;
+    // KMEANS_RANDOM_CENTERS indicates that the initial cluster centers should be chosen randomly.
     kmeans(pixels, k, labels, criteria, 1, cv::KMEANS_RANDOM_CENTERS, centers);
 
-    // Convert the centers to 8-bit BGR forcv::Mat
+    // Convert the centers to 8-bit BGR for cv::Mat
     centers.convertTo(centers, CV_8UC1);
 
     // Create a vector to store the dominant color triplets
@@ -56,16 +59,9 @@ cv::Vec3b TeamSpecification::findDominantColor(
         dominantColors.push_back(triplet);
     }
 
-    // Output the dominant color triplets
-    // cout << "Dominant Colors:" << endl;
-    // for (const auto& triplet : dominantColors) {
-    //     cout << "RGB: (" << (int)triplet[0] << ", " << (int)triplet[1] <<
-    //     ",
-    //     "
-    //          << (int)triplet[2] << ")" << endl;
-    // }
+    
 
-    // remove the black (or gray) cplor from dominants (with threshold)
+    // Remove the black (or gray) from dominants (with threshold)
     for (int i = 0; i < dominantColors.size(); i++) {
         if (dominantColors[i][0] < 25 && dominantColors[i][1] < 25 &&
             dominantColors[i][2] < 25) {
@@ -73,7 +69,7 @@ cv::Vec3b TeamSpecification::findDominantColor(
             i--;
         }
     }
-
+	// If true return only the first dominant color
     if (ignoreTeamColors) {
         return dominantColors[0];  // return dominant color
     }
@@ -81,8 +77,8 @@ cv::Vec3b TeamSpecification::findDominantColor(
     cv::Vec3b finalColor;
     bool assigned = false;
 
-    // find the most similar color to the dmoniantcolors[0] in the teamcolors
-    // map with the utils function
+    // Find the most similar color to the dominantcolors[0] in the teamcolors
+    // Map with the utils function
     cv::Vec3b mostSimilarColor;
     if (teamsColors.size() > 0) {
         mostSimilarColor =
@@ -92,11 +88,11 @@ cv::Vec3b TeamSpecification::findDominantColor(
     }
 
     int threshold = 25;
-    // see if it is in threshold with the utils funciton
+    // See if it is in threshold with the utils function 
     if (Utils::areColorsWithinThreshold(dominantColors[0], mostSimilarColor,
                                         threshold)) {
         return mostSimilarColor;
     } else {
-        return dominantColors[0];  // return dominant color
+        return dominantColors[0];  
     }
 }
