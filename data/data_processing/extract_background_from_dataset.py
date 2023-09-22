@@ -7,14 +7,14 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
-argparse = argparse.ArgumentParser()
-argparse.add_argument("--data_folder", type=str, default="data/images")
-argparse.add_argument("--save_folder", type=str, default="data/positive")
-argparse.add_argument("--keep_percentage", type=float, default=1)
-argparse.add_argument("--num_crops", type=int, default=6)
+parser = argparse.ArgumentParser()
+parser.add_argument("--data_folder", type=str, default="data/images")
+parser.add_argument("--save_folder", type=str, default="data/positive")
+parser.add_argument("--keep_percentage", type=float, default=1)
+parser.add_argument("--num_crops", type=int, default=6)
 
 # Get the args
-args = argparse.parse_args()
+args = parser.parse_args()
 data_folder = args.data_folder
 save_folder = args.save_folder
 keep_percentage = args.keep_percentage
