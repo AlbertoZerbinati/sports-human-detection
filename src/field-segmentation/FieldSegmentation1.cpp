@@ -48,21 +48,22 @@ cv::Mat FieldSegmentation::segmentField(const cv::Mat& src,
         std::cout << "Green Field Segmentation" << std::endl;
         // Attempt green field segmentation
         mask = gfs.detectGreenField(src);
-    } else
+    } else {
         mask = colorFieldSegmentation(src, estimatedColor);  // Fallback method
-    int height = mask.rows;
-    int width = mask.cols;
-    int diameter =
-        static_cast<int>((1.0 / 100.0 * sqrt(height * height + width * width)));
+        int height = mask.rows;
+        int width = mask.cols;
+        int diameter = static_cast<int>(
+            (1.0 / 100.0 * sqrt(height * height + width * width)));
 
-    if (diameter % 2 == 0) diameter++;
+        if (diameter % 2 == 0) diameter++;
 
-    cv::Size size = cv::Size(diameter, diameter);
-    cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, size);
-    cv::morphologyEx(mask, mask, cv::MORPH_CLOSE, element);
+        cv::Size size = cv::Size(diameter, diameter);
+        cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, size);
+        cv::morphologyEx(mask, mask, cv::MORPH_CLOSE, element);
 
-    double filterSize = static_cast<double>(mask.size().area()) / 200.0;
-    mask = filterRegions(mask, filterSize);
+        double filterSize = static_cast<double>(mask.size().area()) / 200.0;
+        mask = filterRegions(mask, filterSize);
+    }
     // Return a copy of the final binary mask
     return mask.clone();
 }
