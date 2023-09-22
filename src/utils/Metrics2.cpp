@@ -1,10 +1,9 @@
 // Marco Calì
 
-#include "utils/Metrics.hpp"
-
 #include <opencv2/core/core.hpp>
 #include <vector>
 
+#include "utils/Metrics.hpp"
 #include "utils/Utils.hpp"
 
 float MetricsEvaluator::computeAPSingleClass(
@@ -98,18 +97,17 @@ float MetricsEvaluator::calculateMAPForTeams(
         }
     }
 
-    // Sort detections in descending order of confidence
-    // TODO
-
-    // Since confidence is not available, just skip this step
-    // std::sort(predictionsTeam1.begin(), predictionsTeam1.end(), [](const
-    // Utils::PlayerBoundingBox &a, const
-    // Utils::PlayerBoundingBox &b)
-    //           { return a.confidence_score > b.confidence_score; });
-    // std::sort(predictionsTeam2.begin(), predictionsTeam2.end(), [](const
-    // Utils::PlayerBoundingBox &a, const
-    // Utils::PlayerBoundingBox &b)
-    //           { return a.confidence_score > b.confidence_score; });
+    // Sort detections in descending order of teamConfidence
+    std::sort(predictionsTeam1.begin(), predictionsTeam1.end(),
+              [](const Utils::PlayerBoundingBox &a,
+                 const Utils::PlayerBoundingBox &b) {
+                  return a.teamConfidence > b.teamConfidence;
+              });
+    std::sort(predictionsTeam2.begin(), predictionsTeam2.end(),
+              [](const Utils::PlayerBoundingBox &a,
+                 const Utils::PlayerBoundingBox &b) {
+                  return a.teamConfidence > b.teamConfidence;
+              });
 
     float iouThreshold = 0.5;
     float average_precision_team1 =

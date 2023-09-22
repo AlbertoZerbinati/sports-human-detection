@@ -60,36 +60,11 @@ PipelineRunOutput Pipeline::run() {
 
         // Extract field color
         cv::Vec3b fieldColor =
-            extractFieldColor(windowMat, peopleSegmentationMat);
-        // Update the map of field colors
-        bool found = false;
-        for (auto& pair : fieldColors) {
-            if (Utils::areColorsWithinThreshold(pair.first, fieldColor, 25)) {
-                pair.second++;
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            fieldColors.insert(std::pair<cv::Vec3b, int>(fieldColor, 1));
-        }
+            extractFieldColor(windowMat, peopleSegmentationMat, fieldColors);
 
         // Extract team color
         cv::Vec3b teamColor =
             extractTeamColor(peopleSegmentationMat, teamsColors);
-        // if the color was in the map then add 1, else add it to the map with
-        // count 1
-        bool found2 = false;
-        for (auto& pair : teamsColors) {
-            if (Utils::areColorsSame(pair.first, teamColor)) {
-                pair.second++;
-                found2 = true;
-                break;
-            }
-        }
-        if (!found2) {
-            teamsColors.insert(std::pair<cv::Vec3b, int>(teamColor, 1));
-        }
 
         // Create a Player object and populate its fields (not the team yet!)
         Utils::ExtendedPlayerBoundingBox player;
@@ -97,7 +72,7 @@ PipelineRunOutput Pipeline::run() {
         player.y = window.y;
         player.w = window.w;
         player.h = window.h;
-        player.color = teamColor;
+        player.dominantColor = teamColor;
         player.colorMask = peopleSegmentationMat;
         player.team = -1;  // not assigned yet
 
@@ -156,11 +131,16 @@ PipelineRunOutput Pipeline::run() {
     for (auto& player : extendedPlayers) {
         // if the player color is within threshold of team1 color, assign it to
         // team 1
-        if (Utils::areColorsWithinThreshold(player.color, team1Color, 25)) {
+        if (Utils::areColorsWithinThreshold(player.dominantColor, team1Color,
+                                            25)) {
             player.team = 1;
-        } else if (Utils::areColorsWithinThreshold(player.color, team2Color,
-                                                   25)) {
+            player.teamConfidence = Utils::colorSimilarityConfidence(
+                player.dominantColor, team1Color);
+        } else if (Utils::areColorsWithinThreshold(player.dominantColor,
+                                                   team2Color, 25)) {
             player.team = 2;
+            player.teamConfidence = Utils::colorSimilarityConfidence(
+                player.dominantColor, team2Color);
         } else {
             std::cout << "Found a person which is not a team player!"
                       << std::endl;
@@ -186,7 +166,8 @@ PipelineRunOutput Pipeline::run() {
                     continue;
                 }
 
-                // TODO: check sovrappositions...
+                // Possible TODO: check sovrappositions and improve
+                // segmentation/detection.
 
                 // Update segmentationBinMask based on exact team check
                 if (player.team == 1) {
@@ -274,25 +255,50 @@ PipelineEvaluateOutput Pipeline::evaluate(PipelineRunOutput detections) {
     return evalOutput;
 }
 
-cv::Vec3b Pipeline::extractFieldColor(const cv::Mat& originalWindow,
-                                      const cv::Mat& mask) {
+cv::Vec3b Pipeline::extractFieldColor(
+    const cv::Mat& originalWindow, const cv::Mat& mask,
+    std::map<cv::Vec3b, int, Utils::Vec3bCompare>& fieldColors) {
     cv::Mat invertedMask = Utils::reverseColoredMask(originalWindow, mask);
 
     std::map<cv::Vec3b, int, Utils::Vec3bCompare> emptyTeamsColors;
 
     // extract the dominant color of the field from the inverted mask
-    cv::Vec3b fieldColor = TeamSpecification::findDominantColor(
-        invertedMask, true, emptyTeamsColors);
+    cv::Vec3b fieldColor = TeamSpecification::findDominantColor(invertedMask);
+
+    // Update the map of field colors
+    bool found = false;
+    for (auto& pair : fieldColors) {
+        if (Utils::areColorsWithinThreshold(pair.first, fieldColor, 25)) {
+            pair.second++;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        fieldColors.insert(std::pair<cv::Vec3b, int>(fieldColor, 1));
+    }
 
     return fieldColor;
 }
 
 cv::Vec3b Pipeline::extractTeamColor(
     const cv::Mat& mask,
-    std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors) {
-    // extract the dominant color of the field from the inverted mask
-    cv::Vec3b teamColor =
-        TeamSpecification::findDominantColor(mask, false, teamsColors);
+    std::map<cv::Vec3b, int, Utils::Vec3bCompare>& teamsColors) {
+    // extract the dominant color of the team from the inverted mask
+    cv::Vec3b teamColor = TeamSpecification::findDominantColor(mask);
+
+    // Update the map
+    bool found = false;
+    for (auto& pair : teamsColors) {
+        if (Utils::areColorsWithinThreshold(pair.first, teamColor, 25)) {
+            pair.second++;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        teamsColors.insert(std::pair<cv::Vec3b, int>(teamColor, 1));
+    }
 
     return teamColor;
 }
