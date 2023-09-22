@@ -34,6 +34,9 @@ RUN echo "export PKG_CONFIG_PATH" | tee --append ~/.bashrc
 SHELL ["/bin/bash", "-c"]
 RUN source ~/.bashrc
 
+# Not used anymore
+RUN rm -r build
+
 # Copy the application files into the image. 
 WORKDIR /workspace
 COPY . .
