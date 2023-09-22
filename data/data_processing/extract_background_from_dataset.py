@@ -38,6 +38,8 @@ image_files = [
 np.random.seed(42)
 image_files = np.random.choice(image_files, int(len(image_files) * keep_percentage))
 
+print("extracting background crops from dataset...")
+
 # Loop through each image file
 for image_file in tqdm(image_files):
     # Load the image using OpenCV
