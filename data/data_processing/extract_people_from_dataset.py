@@ -7,13 +7,13 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
-argparse = argparse.ArgumentParser()
-argparse.add_argument("--data_folder", type=str, default="data/images")
-argparse.add_argument("--save_folder", type=str, default="data/positive")
-argparse.add_argument("--keep_percentage", type=float, default=1)
+parser = argparse.ArgumentParser()
+parser.add_argument("--data_folder", type=str, default="data/images")
+parser.add_argument("--save_folder", type=str, default="data/positive")
+parser.add_argument("--keep_percentage", type=float, default=1)
 
 # Get the args
-args = argparse.parse_args()
+args = parser.parse_args()
 data_folder = args.data_folder
 save_folder = args.save_folder
 keep_percentage = args.keep_percentage
@@ -35,6 +35,8 @@ image_files = [
 # Filter out some images
 np.random.seed(42)
 image_files = np.random.choice(image_files, int(len(image_files) * keep_percentage))
+
+print("extracting people crops from dataset...")
 
 # Loop through each image file
 for image_file in tqdm(image_files):

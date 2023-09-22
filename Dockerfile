@@ -38,6 +38,9 @@ RUN source ~/.bashrc
 WORKDIR /workspace
 COPY . .
 
+# Not used anymore
+RUN rm -r build
+
 # Application dependencies
 RUN apt-get update && \
   apt-get install -y python3 python3-pip wget unzip

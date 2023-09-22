@@ -1,4 +1,7 @@
 # Alberto Zerbinati
+"""
+Script used just for testing purposes during the development of the CNN model.
+"""
 
 import torch
 import torchvision.transforms as transforms
