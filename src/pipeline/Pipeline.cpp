@@ -30,6 +30,18 @@ PipelineRunOutput Pipeline::run() {
     // Clone the image
     cv::Mat image_clone = image_.clone();
 
+    // Perform field detection
+    FieldSegmentation fs1 = FieldSegmentation();
+    Vec3b estimatedFieldColor = fs1.estimateFieldColor(image_clone);
+
+    std::cout << "\nField color (BGR): " << (int)estimatedFieldColor[0] << ", "
+              << (int)estimatedFieldColor[1] << ", "
+              << (int)estimatedFieldColor[2] << std::endl;
+    cv::Mat fieldSegmentationMat =
+        fs1.segmentField(image_clone, estimatedFieldColor);
+
+    cv::imshow("out", fieldSegmentationMat);
+    cv::waitKey(0);
     // Perform people detection
     std::cout << "\nPerforming players detection..." << std::endl;
     std::vector<DetectedWindow> detected_windows =
@@ -54,8 +66,9 @@ PipelineRunOutput Pipeline::run() {
         cv::Mat windowMat = image_clone(rect).clone();
 
         // Perform people segmentation
-        cv::Mat peopleSegmentationMat=cv::Mat::zeros(image_clone.cols, image_clone.rows, CV_8UC3);
-        peopleSegmentation_.segmentPeople(windowMat,peopleSegmentationMat);
+        cv::Mat peopleSegmentationMat =
+            cv::Mat::zeros(image_clone.cols, image_clone.rows, CV_8UC3);
+        peopleSegmentation_.segmentPeople(windowMat, peopleSegmentationMat);
 
         // Extract field color
         cv::Vec3b fieldColor =
@@ -116,12 +129,13 @@ PipelineRunOutput Pipeline::run() {
         }
     }
 
-    std::cout << "\nField color (BGR): " << (int)fieldColor[0] << ", "
-              << (int)fieldColor[1] << ", " << (int)fieldColor[2] << std::endl;
+    // std::cout << "\nField color (BGR): " << (int)fieldColor[0] << ", "
+    //           << (int)fieldColor[1] << ", " << (int)fieldColor[2] <<
+    //           std::endl;
 
     // perform field segmentation on the whole image
-    FieldSegmentation fs = FieldSegmentation();
-    cv::Mat fieldSegmentationMat = fs.segmentField(image_clone, fieldColor);
+    // FieldSegmentation fs = FieldSegmentation();
+    // cv::Mat fieldSegmentationMat = fs.segmentField(image_clone, fieldColor);
 
     // find team 1 color
     max = 0;
@@ -255,15 +269,16 @@ PipelineEvaluateOutput Pipeline::evaluate(PipelineRunOutput detections) {
                   << std::endl;
         mIoU = 0;
     } else {
-        mIoU = metricsEvaluator_.calculateMIoU(
-            detections.segmentationBinMask, groundTruthSegmentationMask);
+        mIoU = metricsEvaluator_.calculateMIoU(detections.segmentationBinMask,
+                                               groundTruthSegmentationMask);
     }
 
     // Calculate mAP
     std::vector<Utils::PlayerBoundingBox> groundTruths =
         Utils::readBoundingBoxesFromFile(groundTruthBBoxesFilePath_);
 
-    mAP = metricsEvaluator_.calculateMAP(groundTruths, detections.boundingBoxes);
+    mAP =
+        metricsEvaluator_.calculateMAP(groundTruths, detections.boundingBoxes);
 
     // populate the output object
     evalOutput.mIoU = mIoU;

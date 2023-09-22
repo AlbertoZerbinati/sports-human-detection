@@ -9,7 +9,7 @@ cv::Mat FieldSegmentation::colorFieldSegmentation(
     cv::Mat mask = cv::Mat(image.size(), CV_8U);
 
     // Define a color similarity threshold
-    int threshold = 25;
+    int threshold = 35;
 
     // Fill the mask with white where the image pixels have color similarity to
     // the estimated color
