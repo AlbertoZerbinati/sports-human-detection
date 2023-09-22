@@ -9,6 +9,7 @@ You have two options for setting up and running the project:
   - Build the provided Docker image with `docker build -t sports-human-detection .`
   - Run the container with `docker run --name sports-container -it sports-human-detection`
   - Docker was used during development and is a recommended way to distribute the code. After these steps, you're set to download the dataset and proceed with the build/train/run steps below.
+  - 💡 Tip: use the command `docker cp <local_path> sports-container:<container_path>` to copy local files (e.g. dataset images) from your local pc to the docker container.
   
 2. **Local Installation** (with OpenCV and LibTorch):
   - Download project dependencies:
@@ -34,7 +35,7 @@ Choose the option that best fits your needs to get started.
 
 ## Report
 
-Ask for permission [here](https://docs.google.com/document/d/1_8SdJ6yfRL37Bn0gcs749Rhd29lRVZCEUC0VRQvNA3Y/edit#heading=h.5wxqaqinvaq4).
+Ask for permission [here](https://docs.google.com/document/d/1_8SdJ6yfRL37Bn0gcs749Rhd29lRVZCEUC0VRQvNA3Y/edit#heading=h.5wxqaqinvaq4)
 
 ---
 
