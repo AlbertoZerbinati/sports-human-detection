@@ -1,87 +1,11 @@
-// mIoU Marco Sedusi
-// Map Marco Calì
-
+// Marco Calì
 
 #include "utils/Metrics.hpp"
+
 #include <opencv2/core/core.hpp>
 #include <vector>
+
 #include "utils/Utils.hpp"
-
-
-/* calculateClassIoU
- * Parameters: predicted is the matrix segmented returned by our algorithm
- * groundTruth is reference matrix segmented
- * label is an interger value to indicate the class for which we want to compute the IoU metric */
-float MetricsEvaluator::calculateClassIoU(const cv::Mat &predicted,
-                                          const cv::Mat &groundTruth,
-                                          int label) {
-    int intersect = 0;
-    int uni = 0;
-
-    for (int i = 0; i < predicted.rows; i++) {
-        for (int j = 0; j < predicted.cols; j++) {
-            // Both true
-            // If the two masks have same value then counter++ for union and intersection
-            if (predicted.at<uchar>(i, j) == label &&
-                groundTruth.at<uchar>(i, j) == label) {
-                intersect++;
-                uni++;
-            }
-            // Only one true
-            // If only one of the two masks have the specified value label then counter++ for union
-            else if (predicted.at<uchar>(i, j) == label &&
-                         groundTruth.at<uchar>(i, j) != label ||
-                     predicted.at<uchar>(i, j) != label &&
-                         groundTruth.at<uchar>(i, j) == label) {
-                uni++;
-            }
-        }
-    }
-	// To avoid division by zero
-    if (uni == 0) {
-        uni = 1;
-    }
-	// Return the IoU for one class
-    return (float)intersect / uni;  
-}
-/* calculateMIoU
- * Parameters: predicted is the matrix segmented returned by our algorithm
- * groundTruth is reference matrix segmented */
-float MetricsEvaluator::calculateMIoU(const cv::Mat &predicted,
-                                             const cv::Mat &groundTruth) {
-	// Two matrices must have same size and type 
-    if (!(predicted.size() == groundTruth.size() &&
-          predicted.type() == groundTruth.type())) {
-        std::cerr
-            << "Size or type between predicted and ground truth don't match."
-            << std::endl;
-        return 0;
-    }
-	// Perform the metric computation for the 3 classes (field,team1 and team2)
-    float IoU1 = calculateClassIoU(predicted, groundTruth, 1);
-    float IoU2 = calculateClassIoU(predicted, groundTruth, 2);
-    float IoU3 = calculateClassIoU(predicted, groundTruth, 3);
-	
-	// Return the mIoU as float
-    return (IoU1 + IoU2 + IoU3) / 3;
-}
-
-float MetricsEvaluator::calculateGeometricIoU(
-    const Utils::PlayerBoundingBox &bb1, const Utils::PlayerBoundingBox &bb2) {
-    int x_overlap = std::max(
-        0, std::min(bb1.x + bb1.w, bb2.x + bb2.w) - std::max(bb1.x, bb2.x));
-    int y_overlap = std::max(
-        0, std::min(bb1.y + bb1.h, bb2.y + bb2.h) - std::max(bb1.y, bb2.y));
-
-    int overlapArea = x_overlap * y_overlap;
-    int unionArea = bb1.w * bb1.h + bb2.w * bb2.h - overlapArea;
-
-    if (unionArea == 0) {
-        return 0;
-    }
-
-    return (float)overlapArea / unionArea;
-}
 
 float MetricsEvaluator::computeAPSingleClass(
     const std::vector<Utils::PlayerBoundingBox> &bb_class,
@@ -145,16 +69,6 @@ float MetricsEvaluator::computeAPSingleClass(
     average_precision /= 11;
 
     return average_precision;
-}
-
-float MetricsEvaluator::calculateMAP(
-    const std::vector<Utils::PlayerBoundingBox> &groundTruths,
-    const std::vector<Utils::PlayerBoundingBox> &predictions) {
-    // Calculate mAP for each team label assignment and return the max
-    float mAP1 = calculateMAPForTeams(groundTruths, predictions, 1, 2);
-    float mAP2 = calculateMAPForTeams(groundTruths, predictions, 2, 1);
-
-    return std::max(mAP1, mAP2);
 }
 
 float MetricsEvaluator::calculateMAPForTeams(

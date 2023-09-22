@@ -21,8 +21,10 @@ You have two options for setting up and running the project:
 - (*optional*) If you want to **train your own model** on our dataset (a pretrained model is provided anyway):
   - Download the **raw dataset** from <https://drive.google.com/file/d/1OEn1nHN4T0PdysuzRUNyqhGtnbWjI-UB/view>
   - **Extract** all images in the `data/images` folder
-  - `pip3 install -r requirements.txt` (create a virtual environment if you desire)
-  - Create the **final dataset** by running `./data/create_crops.sh` (use `chmod` if needed)
+  - `pip3 install -r requirements.txt`
+    - 💡 Create a virtual environment if you desire. We used Python 3.8.10
+    - You can skip this if you're using Docker
+  - Create the **final dataset** by running `./data/data_processing/create_crops.sh` (`chmod` if needed)
   - **Train** the model by running `python3 cnn/train.py --train_model --save_trained_model --evaluate_model --model_path models/people_detection_model.pt`
 - **Build** the project 🧰
   - `mkdir build && cd build`

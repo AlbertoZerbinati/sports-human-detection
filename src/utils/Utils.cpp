@@ -106,8 +106,8 @@ void writeBoundingBoxesToFile(const std::vector<PlayerBoundingBox>& boxes,
 
     for (const auto& box : boxes) {
         if (box.team != -1) {
-        outFile << box.x << " " << box.y << " " << box.w << " " << box.h << " "
-                << box.team << std::endl;
+            outFile << box.x << " " << box.y << " " << box.w << " " << box.h
+                    << " " << box.team << std::endl;
         }
     }
 

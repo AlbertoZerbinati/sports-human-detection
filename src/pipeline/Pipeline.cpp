@@ -54,8 +54,9 @@ PipelineRunOutput Pipeline::run() {
         cv::Mat windowMat = image_clone(rect).clone();
 
         // Perform people segmentation
-        cv::Mat peopleSegmentationMat=cv::Mat::zeros(image_clone.cols, image_clone.rows, CV_8UC3);
-        peopleSegmentation_.segmentPeople(windowMat,peopleSegmentationMat);
+        cv::Mat peopleSegmentationMat =
+            cv::Mat::zeros(image_clone.cols, image_clone.rows, CV_8UC3);
+        peopleSegmentation_.segmentPeople(windowMat, peopleSegmentationMat);
 
         // Extract field color
         cv::Vec3b fieldColor =
@@ -255,15 +256,16 @@ PipelineEvaluateOutput Pipeline::evaluate(PipelineRunOutput detections) {
                   << std::endl;
         mIoU = 0;
     } else {
-        mIoU = metricsEvaluator_.calculateMIoU(
-            detections.segmentationBinMask, groundTruthSegmentationMask);
+        mIoU = metricsEvaluator_.calculateMIoU(detections.segmentationBinMask,
+                                               groundTruthSegmentationMask);
     }
 
     // Calculate mAP
     std::vector<Utils::PlayerBoundingBox> groundTruths =
         Utils::readBoundingBoxesFromFile(groundTruthBBoxesFilePath_);
 
-    mAP = metricsEvaluator_.calculateMAP(groundTruths, detections.boundingBoxes);
+    mAP =
+        metricsEvaluator_.calculateMAP(groundTruths, detections.boundingBoxes);
 
     // populate the output object
     evalOutput.mIoU = mIoU;
