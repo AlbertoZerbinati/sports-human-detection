@@ -54,8 +54,8 @@ PipelineRunOutput Pipeline::run() {
         cv::Mat windowMat = image_clone(rect).clone();
 
         // Perform people segmentation
-        cv::Mat peopleSegmentationMat =
-            peopleSegmentation_.segmentPeople(windowMat);
+        cv::Mat peopleSegmentationMat=cv::Mat::zeros(image_clone.cols, image_clone.rows, CV_8UC3);
+        cv::peopleSegmentation_.segmentPeople(windowMat,peopleSegmentationMat);
 
         // Extract field color
         cv::Vec3b fieldColor =
