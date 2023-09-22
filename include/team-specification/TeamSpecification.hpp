@@ -3,17 +3,25 @@
 #ifndef TEAM_SPECIFICATION_HPP
 #define TEAM_SPECIFICATION_HPP
 
-#include <iostream>
 #include <map>
 #include <opencv2/core/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
 
 #include "utils/Utils.hpp"
 
+/**
+ * Namespace containing functions for team specification.
+ */
 namespace TeamSpecification {
 
+/**
+ * Finds the dominant color in an image, with an option to ignore team colors.
+ * If team colors are not ignored, the function uses an internal threshold to
+ * check if the calculated dominant color is similar to one of the teamColors.
+ * @param temp Input image in cv::Mat format.
+ * @param ignoreTeamColors Flag to ignore predefined team colors.
+ * @param teamsColors Map of team colors/count to be optionally ignored.
+ * @return The dominant color as a cv::Vec3b object.
+ */
 cv::Vec3b findDominantColor(
     cv::Mat temp, bool ignoreTeamColors,
     std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors);

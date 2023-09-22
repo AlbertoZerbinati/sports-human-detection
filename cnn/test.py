@@ -7,12 +7,11 @@ from PIL import Image, ImageDraw
 
 # Load the model
 model = PeopleDetectionCNN("cpu")
-model.load_state_dict(torch.load("models/people_detection_model_normalize.pth"))
+model.load_state_dict(torch.load("models/people_detection_model_normalized.pth"))
 model.eval()
 
 # Load image
 image = Image.open("data/Sport_scene_dataset/Images/im1.jpg")
-image = Image.open("data/dataset/test/positive/SCR-20230907-pjed_crop_1050_.jpeg")
 
 # Preprocessing
 transform = transforms.Compose(
@@ -41,9 +40,8 @@ predicted = predicted.item()
 
 print(output.data)
 
-import sys
-
-sys.exit()
+# import sys
+# sys.exit()
 
 # Counter for naming files
 counter = 0

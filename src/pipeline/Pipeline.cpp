@@ -20,10 +20,6 @@ Pipeline::Pipeline(const cv::Mat& image, std::string model_path,
       groundTruthBBoxesFilePath_(groundTruthBBoxesFilePath),
       groundTruthSegmentationMaskPath_(groundTruthSegmentationMaskPath) {}
 
-Pipeline::~Pipeline() {
-    // Cleanup if needed
-}
-
 PipelineRunOutput Pipeline::run() {
     // create the output variables
     PipelineRunOutput output;
@@ -259,7 +255,7 @@ PipelineEvaluateOutput Pipeline::evaluate(PipelineRunOutput detections) {
                   << std::endl;
         mIoU = 0;
     } else {
-        mIoU = metricsEvaluator_.calculateClassesMIoU(
+        mIoU = metricsEvaluator_.calculateMIoU(
             detections.segmentationBinMask, groundTruthSegmentationMask);
     }
 

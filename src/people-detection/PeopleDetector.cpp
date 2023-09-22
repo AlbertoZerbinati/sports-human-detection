@@ -146,7 +146,7 @@ std::vector<DetectedWindow> PeopleDetector::performSlidingWindow(
             cv::Mat crop = image_copy(window);
 
             torch::Tensor crop_tensor;
-            if (!ImageToTensor(crop, crop_tensor)) {
+            if (!imageToTensor(crop, crop_tensor)) {
                 std::cerr << "Error converting image to tensor\n";
                 continue;  // Skip this window if conversion fails
             }
@@ -189,7 +189,7 @@ std::vector<DetectedWindow> PeopleDetector::performSlidingWindow(
     return detected_windows;
 }
 
-bool PeopleDetector::ImageToTensor(cv::Mat& image, torch::Tensor& tensor) {
+bool PeopleDetector::imageToTensor(cv::Mat& image, torch::Tensor& tensor) {
     try {
         cv::Mat image_copy = image.clone();
         cv::cvtColor(image_copy, image_copy, cv::COLOR_BGR2RGB);

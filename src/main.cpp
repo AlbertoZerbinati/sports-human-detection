@@ -9,8 +9,8 @@
 int main(int argc, char** argv) {
     if (argc != 5) {
         std::cerr << "Usage: " << argv[0]
-                  << " <image_path> <model_path> <groundTruthBBoxesFilePath> "
-                     "<groundTruthSegmentationMaskPath>"
+                  << " <image_path> <model_path> <ground_truth_bboxes_file_path> "
+                     "<ground_truth_segmentation_mask_path>"
                   << std::endl;
         return 1;
     }

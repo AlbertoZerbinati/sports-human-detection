@@ -38,7 +38,7 @@ float MetricsEvaluator::calculateClassIoU(const cv::Mat &predicted,
     return (float)intersect / uni;
 }
 
-float MetricsEvaluator::calculateClassesMIoU(const cv::Mat &predicted,
+float MetricsEvaluator::calculateMIoU(const cv::Mat &predicted,
                                              const cv::Mat &groundTruth) {
     if (!(predicted.size() == groundTruth.size() &&
           predicted.type() == groundTruth.type())) {
