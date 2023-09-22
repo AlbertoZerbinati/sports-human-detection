@@ -8,10 +8,11 @@
 
 int main(int argc, char** argv) {
     if (argc != 5) {
-        std::cerr << "Usage: " << argv[0]
-                  << " <image_path> <model_path> <ground_truth_bboxes_file_path> "
-                     "<ground_truth_segmentation_mask_path>"
-                  << std::endl;
+        std::cerr
+            << "Usage: " << argv[0]
+            << " <image_path> <model_path> <ground_truth_bboxes_file_path> "
+               "<ground_truth_segmentation_mask_path>"
+            << std::endl;
         return 1;
     }
 
@@ -50,12 +51,8 @@ int main(int argc, char** argv) {
     // Save the outputs
     cv::imwrite(img_name + "_bin_mask.png", runOutput.segmentationBinMask);
     cv::imwrite(img_name + "_color_mask.png", runOutput.segmentationColorMask);
-    Utils::writeBoundingBoxesToFile(
-        runOutput.boundingBoxes,
-        img_name +
-            "_bboxes.txt");  // TODO: here there are some players returned by
-                             // the pipeline that are assigned to team -1 ...
-                             // manage this throughout the pipeline and here
+    Utils::writeBoundingBoxesToFile(runOutput.boundingBoxes,
+                                    img_name + "_bboxes.txt");
     Utils::saveBoundingBoxesOnImage(img, runOutput.boundingBoxes,
                                     img_name + "_bboxes.png");
 

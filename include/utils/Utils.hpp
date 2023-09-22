@@ -14,17 +14,19 @@ namespace Utils {
 
 // Structure to hold information about a player's bounding box
 struct PlayerBoundingBox {
-    int x;            // X-coordinate of top-left corner
-    int y;            // Y-coordinate of top-left corner
-    int w;            // Width of bounding box
-    int h;            // Height of bounding box
-    int team;         // Team identifier
-    cv::Vec3b color;  // Color of bounding box
+    int x;                 // X-coordinate of top-left corner
+    int y;                 // Y-coordinate of top-left corner
+    int w;                 // Width of bounding box
+    int h;                 // Height of bounding box
+    int team;              // Team identifier
+    float teamConfidence;  // Confidence of team identifier
 };
 
 // Structure to hold extended information about a player's bounding box
 struct ExtendedPlayerBoundingBox : PlayerBoundingBox {
-    cv::Mat colorMask;  // Color mask for the bounding box
+    cv::Vec3b dominantColor;  // Dominant color of the bounding box, hinting at
+                              // the team color
+    cv::Mat colorMask;        // Color mask for the bounding box
 };
 
 // Functor to compare two Vec3b objects
@@ -67,6 +69,16 @@ bool areColorsSame(const cv::Vec3b& color1, const cv::Vec3b& color2);
 cv::Vec3b findMostSimilarColor(
     const cv::Vec3b& targetColor,
     const std::map<cv::Vec3b, int, Vec3bCompare> colorMap);
+
+/**
+ * Calculates the similarity between two colors, expressed as a confidence
+ * measure.
+ * @param color1 First color to compare.
+ * @param color2 Second color to compare.
+ * @return A value between 0 and 1 representing the similarity between the two
+ * colors.
+ */
+float colorSimilarityConfidence(cv::Vec3b color1, cv::Vec3b color2);
 
 /**
  * Reads bounding boxes from a file.

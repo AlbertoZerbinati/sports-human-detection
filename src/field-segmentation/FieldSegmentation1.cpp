@@ -1,7 +1,6 @@
 // Marco Calì
 
 #include "field-segmentation/FieldSegmentation.hpp"
-
 #include "field-segmentation/GreenFieldSegmentation.hpp"
 
 cv::Mat FieldSegmentation::filterRegions(const cv::Mat& mask, double minArea) {

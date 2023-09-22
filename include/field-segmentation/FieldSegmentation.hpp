@@ -1,5 +1,4 @@
-// FieldSegmentation.hpp
-// Author: Marco Calì
+// Marco Calì
 
 #ifndef FIELD_SEGMENTATION_HPP
 #define FIELD_SEGMENTATION_HPP

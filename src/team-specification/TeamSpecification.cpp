@@ -9,15 +9,9 @@
 #include <opencv2/imgproc.hpp>
 
 /* findDominantColor
- * function to find k dominant colors in the image if the flag is false also for
- * team specification task Parameters: matrix is the mask where we want to
- * perform the dominant colors extraction ignoreTeamColors is a flag that if it
- * is true admit to ignore the last parameters for team colors teamColors is a
- * map with dominant colors for teams found so far
+ * function to find k dominant colors in the image.
  * */
-cv::Vec3b TeamSpecification::findDominantColor(
-    cv::Mat matrix, bool ignoreTeamColors,
-    std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors) {
+cv::Vec3b TeamSpecification::findDominantColor(cv::Mat matrix) {
     //	Each pixel in the image is treated as a separate data point for the
     // clustering
     cv::Mat pixels = matrix.reshape(1, matrix.rows * matrix.cols);
@@ -72,30 +66,6 @@ cv::Vec3b TeamSpecification::findDominantColor(
             i--;
         }
     }
-    // If true return only the first dominant color
-    if (ignoreTeamColors) {
-        return dominantColors[0];  // return dominant color
-    }
 
-    cv::Vec3b finalColor;
-    bool assigned = false;
-
-    // Find the most similar color to the dominantcolors[0] in the teamcolors
-    // Map with the utils function
-    cv::Vec3b mostSimilarColor;
-    if (teamsColors.size() > 0) {
-        mostSimilarColor =
-            Utils::findMostSimilarColor(dominantColors[0], teamsColors);
-    } else {
-        mostSimilarColor = dominantColors[0];
-    }
-
-    int threshold = 25;
-    // See if it is in threshold with the utils function
-    if (Utils::areColorsWithinThreshold(dominantColors[0], mostSimilarColor,
-                                        threshold)) {
-        return mostSimilarColor;
-    } else {
-        return dominantColors[0];
-    }
+    return dominantColors[0];
 }

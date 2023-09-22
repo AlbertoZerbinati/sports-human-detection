@@ -24,7 +24,7 @@ void PeopleDetector::loadModel(const std::string& model_path) {
 
 std::vector<DetectedWindow> PeopleDetector::detectPeople(const cv::Mat& image) {
     // Define hyperparameters
-    const std::vector<float>& scales{0.8, 1.2};  // 0.4, 0.7, 1
+    const std::vector<float>& scales{0.8, 1.2};
     const float gamma{2};
     const float delta{1.3};
 
@@ -42,12 +42,7 @@ std::vector<DetectedWindow> PeopleDetector::detectPeople(const cv::Mat& image) {
 
         // Get the number of detected windows
         int num_windows = detected_windows.size();
-        // std::cout << "Number of detected windows at scale " << scale << ": "
-        //           << num_windows << std::endl;
-
         int max_classes = std::min(num_windows, 9);
-
-        // best_windows = detected_windows;
 
         // Perform K-means clustering on detected windows to remove duplicates
         for (int k = 1; k <= max_classes; ++k) {
@@ -75,9 +70,6 @@ std::vector<DetectedWindow> PeopleDetector::detectPeople(const cv::Mat& image) {
                 best_labels = labels;
                 best_windows = detected_windows;
                 best_scale = scale;
-
-                // std::cout << "New best loss for k " << k << " :" << best_loss
-                //           << std::endl;
             }
         }
     }
@@ -117,24 +109,12 @@ std::vector<DetectedWindow> PeopleDetector::performSlidingWindow(
     const cv::Mat& image, float scale) {
     std::vector<DetectedWindow> detected_windows;
 
-    // Resize the image based on the scale
-    // cv::Mat resized_image;
-    // cv::resize(image, resized_image, cv::Size(), scale, scale);
-
-    // Define window size and step size based on image w and h
+    // Define window size and step size based on image w and h, and scale
     float base_window_width = float(image.cols) / 5.0;
     float base_window_height = float(image.rows) / 3.0;
     int window_width = int(base_window_width * scale);
     int window_height = int(base_window_height * scale);
     int step_size = 50;
-
-    // save the resized image with a rectangle of the size for inspection
-    // cv::rectangle(resized_image, cv::Point(0, 0),
-    //               cv::Point(window_width, window_height), cv::Scalar(0, 255,
-    //               0), 2);
-    // // assign a name based on the scale
-    // std::string name = "resized_image_" + std::to_string(scale) + ".jpg";
-    // cv::imwrite(name, resized_image);
 
     float confidence_threshold = 0.85;  // Set your confidence threshold here
 
@@ -178,10 +158,6 @@ std::vector<DetectedWindow> PeopleDetector::performSlidingWindow(
                 win.confidence = *max_prob;
 
                 detected_windows.push_back(win);
-                // std::cout << "Detected window: " << win.x << " " << win.y <<
-                // " "
-                //           << win.w << " " << win.h << " " << win.confidence
-                //           << std::endl;
             }
         }
     }
@@ -291,8 +267,6 @@ float PeopleDetector::computeWeightedLoss(float kmeansLoss, float scale, int k,
     double scalePenalty = kmeansLoss / 10 * gamma / std::pow(scale, 1);
     double kPenalty = kmeansLoss / 10 * delta * std::pow(k, 1);
     double loss = kmeansLoss + scalePenalty + kPenalty;
-    // std::cout << "kmeansLoss: " << kmeansLoss
-    //           << " scalePenalty: " << scalePenalty << " kPenalty: " << kPenalty
-    //           << " loss: " << loss << std::endl;
+
     return loss;
 }
