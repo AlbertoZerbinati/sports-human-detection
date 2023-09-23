@@ -83,14 +83,14 @@ float MetricsEvaluator::calculateMAPForTeams(
     // for each team, add the ground truths and predictions to the corresponding
     // vector
     for (int i = 0; i < groundTruths.size(); i++) {
-        if (groundTruths[i].team == team1Label) {
+        if (groundTruths[i].team == 1) {  // ground truth labels are fixed
             groundTruthsTeam1.push_back(groundTruths[i]);
-        } else if (groundTruths[i].team == team2Label) {
+        } else if (groundTruths[i].team == 2) {
             groundTruthsTeam2.push_back(groundTruths[i]);
         }
     }
     for (int i = 0; i < predictions.size(); i++) {
-        if (predictions[i].team == team1Label) {
+        if (predictions[i].team == team1Label) {  // predictions labels may vary
             predictionsTeam1.push_back(predictions[i]);
         } else if (predictions[i].team == team2Label) {
             predictionsTeam2.push_back(predictions[i]);

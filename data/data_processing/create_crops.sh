@@ -28,7 +28,7 @@ python3 data/data_processing/extract_background_from_dataset.py \
     --data_folder data/images \
     --save_folder data/negative \
     --keep_percentage 1 \
-    --num_crops 7
+    --num_crops 6
 
 # split into train, valid, test sets
 ./data/data_processing/split_train_valid_test.sh
