@@ -1,10 +1,9 @@
 // Marco Sedusi
 
-#include "utils/Metrics.hpp"
-
 #include <opencv2/core/core.hpp>
 #include <vector>
 
+#include "utils/Metrics.hpp"
 #include "utils/Utils.hpp"
 
 /* calculateClassIoU
@@ -59,11 +58,13 @@ float MetricsEvaluator::calculateMIoU(const cv::Mat &predicted,
             << std::endl;
         return 0;
     }
-    // Perform the metric computation for the 3 classes (field,team1 and team2)
-    float IoU1 = calculateClassIoU(predicted, groundTruth, 1);
-    float IoU2 = calculateClassIoU(predicted, groundTruth, 2);
-    float IoU3 = calculateClassIoU(predicted, groundTruth, 3);
+    // Perform the metric computation for the 3 classes (background, field,
+    // team1 and team2)
+    float IoU0 = calculateClassIoU(predicted, groundTruth, 0);  // background
+    float IoU1 = calculateClassIoU(predicted, groundTruth, 1);  // team1
+    float IoU2 = calculateClassIoU(predicted, groundTruth, 2);  // team2
+    float IoU3 = calculateClassIoU(predicted, groundTruth, 3);  // field
 
     // Return the mIoU as float
-    return (IoU1 + IoU2 + IoU3) / 3;
+    return (IoU0 + IoU1 + IoU2 + IoU3) / 4;
 }
