@@ -31,28 +31,27 @@ PipelineRunOutput Pipeline::run() {
     cv::Mat image_clone = image_.clone();
 
     // Perform field detection
-    FieldSegmentation fs1 = FieldSegmentation();
-    Vec3b estimatedFieldColor = fs1.estimateFieldColor(image_clone);
+    std::cout << "\nPerforming field segmentation..." << std::endl;
 
-    std::cout << "\nField color (BGR): " << (int)estimatedFieldColor[0] << ", "
+    FieldSegmentation fieldSegmentation = FieldSegmentation();
+    Vec3b estimatedFieldColor =
+        fieldSegmentation.estimateFieldColor(image_clone);
+
+    cv::Mat fieldSegmentationMat =
+        fieldSegmentation.segmentField(image_clone, estimatedFieldColor);
+
+    std::cout << "Field color (BGR): " << (int)estimatedFieldColor[0] << ", "
               << (int)estimatedFieldColor[1] << ", "
               << (int)estimatedFieldColor[2] << std::endl;
-    cv::Mat fieldSegmentationMat =
-        fs1.segmentField(image_clone, estimatedFieldColor);
 
-    cv::imshow("out", fieldSegmentationMat);
-    cv::waitKey(0);
     // Perform people detection
     std::cout << "\nPerforming players detection..." << std::endl;
     std::vector<DetectedWindow> detected_windows =
         peopleDetector_.detectPeople(image_clone);
 
-    // teams color
+    // Teams colors map. Each bounding box can vote for a color, and the two
+    // most voted colors will be the team colors
     std::map<cv::Vec3b, int, Utils::Vec3bCompare> teamsColors;
-
-    // global color of field as a map which at each color assigns a counter
-    // to count the number of times that color is found
-    std::map<cv::Vec3b, int, Utils::Vec3bCompare> fieldColors;
 
     std::cout << "\nIterating over " << detected_windows.size()
               << " detected windows to segment players and extract teams and "
@@ -69,10 +68,6 @@ PipelineRunOutput Pipeline::run() {
         cv::Mat peopleSegmentationMat =
             cv::Mat::zeros(image_clone.cols, image_clone.rows, CV_8UC3);
         peopleSegmentation_.segmentPeople(windowMat, peopleSegmentationMat);
-
-        // Extract field color
-        cv::Vec3b fieldColor =
-            extractFieldColor(windowMat, peopleSegmentationMat, fieldColors);
 
         // Extract team color
         cv::Vec3b teamColor =
@@ -94,26 +89,8 @@ PipelineRunOutput Pipeline::run() {
         i++;
     }
 
-    // find the most common field color
-    cv::Vec3b fieldColor;
-    int max = 0;
-    for (auto& pair : fieldColors) {
-        if (pair.second > max) {
-            max = pair.second;
-            fieldColor = pair.first;
-        }
-    }
-
-    // std::cout << "\nField color (BGR): " << (int)fieldColor[0] << ", "
-    //           << (int)fieldColor[1] << ", " << (int)fieldColor[2] <<
-    //           std::endl;
-
-    // perform field segmentation on the whole image
-    // FieldSegmentation fs = FieldSegmentation();
-    // cv::Mat fieldSegmentationMat = fs.segmentField(image_clone, fieldColor);
-
     // find team 1 color
-    max = 0;
+    int max = 0;
     cv::Vec3b team1Color;
     for (auto& pair : teamsColors) {
         if (pair.second > max) {
@@ -266,32 +243,6 @@ PipelineEvaluateOutput Pipeline::evaluate(PipelineRunOutput detections) {
     evalOutput.mAP = mAP;
 
     return evalOutput;
-}
-
-cv::Vec3b Pipeline::extractFieldColor(
-    const cv::Mat& originalWindow, const cv::Mat& mask,
-    std::map<cv::Vec3b, int, Utils::Vec3bCompare>& fieldColors) {
-    cv::Mat invertedMask = Utils::reverseColoredMask(originalWindow, mask);
-
-    std::map<cv::Vec3b, int, Utils::Vec3bCompare> emptyTeamsColors;
-
-    // extract the dominant color of the field from the inverted mask
-    cv::Vec3b fieldColor = TeamSpecification::findDominantColor(invertedMask);
-
-    // Update the map of field colors
-    bool found = false;
-    for (auto& pair : fieldColors) {
-        if (Utils::areColorsWithinThreshold(pair.first, fieldColor, 25)) {
-            pair.second++;
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        fieldColors.insert(std::pair<cv::Vec3b, int>(fieldColor, 1));
-    }
-
-    return fieldColor;
 }
 
 cv::Vec3b Pipeline::extractTeamColor(

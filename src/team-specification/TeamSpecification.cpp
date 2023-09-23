@@ -1,4 +1,4 @@
-// Sedusi Marco
+// Marco Sedusi
 
 #include "team-specification/TeamSpecification.hpp"
 
