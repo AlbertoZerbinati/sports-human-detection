@@ -19,7 +19,7 @@ You have two options for setting up and running the project:
 
 **Common Steps for Both Options:**
 - (*optional*) If you want to **train your own model** on our dataset (a pretrained model is provided anyway):
-  - Download the **raw dataset** from <https://drive.google.com/file/d/1OEn1nHN4T0PdysuzRUNyqhGtnbWjI-UB/view>
+  - Download the **raw dataset** from <https://drive.google.com/file/d/1SZl7DdaQr_lwGnCHeA5jOapKr4M1FwiO/view?usp=sharing>
   - **Extract** all images in the `data/images` folder
   - `pip3 install -r requirements.txt`
     - 💡 Create a virtual environment if you desire. We used Python 3.8.10
