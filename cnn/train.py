@@ -36,19 +36,19 @@ def train_model(save_model=False, model_path="models/people_detection_model.pt")
     train_dataset = PeopleDataset(train_path, transform=transform)
     valid_dataset = PeopleDataset(valid_path, transform=transform)
 
-    train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    valid_dataloader = DataLoader(valid_dataset, batch_size=32, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True, drop_last=True)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=32, shuffle=True, drop_last=True)
 
     # Initialize the model
     model = PeopleDetectionCNN("cuda" if torch.cuda.is_available() else "cpu")
 
     # Loss function and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=2e-5)
-    # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+    optimizer = optim.Adam(model.parameters(), lr=3e-5)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.9, verbose=True)
 
     # Number of epochs
-    n_epochs = 20
+    n_epochs = 15
 
     # Training and Validation loop
     for epoch in range(n_epochs):
@@ -74,6 +74,8 @@ def train_model(save_model=False, model_path="models/people_detection_model.pt")
                 target = target.cuda() if torch.cuda.is_available() else target
                 loss = criterion(output, target)
                 valid_loss += loss.item()
+
+        scheduler.step()
 
         print(
             f"Epoch: {epoch+1}/{n_epochs}, Train Loss: {train_loss/len(train_dataloader):.6f}, Valid Loss: {valid_loss/len(valid_dataloader):.6f}"
