@@ -81,7 +81,9 @@ for image_file in tqdm(image_files):
                 # check if the crop is empty
                 if crop.size != 0:
                     # extract the image name without the extension
-                    image_name, image_extension = image_file.split(".")
+                    image_name= image_file.split(".")[0]
+                    # extract the image extension
+                    image_extension = image_file.split(".")[-1]
 
                     file_name = (
                         f"{save_folder}/{image_name}_crop_{i}_.{image_extension}"
