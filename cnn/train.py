@@ -44,11 +44,11 @@ def train_model(save_model=False, model_path="models/people_detection_model.pt")
 
     # Loss function and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=3e-5)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.9, verbose=True)
+    optimizer = optim.Adam(model.parameters(), lr=2e-5)
+    # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.9, verbose=True)
 
     # Number of epochs
-    n_epochs = 15
+    n_epochs = 20
 
     # Training and Validation loop
     for epoch in range(n_epochs):
@@ -75,7 +75,7 @@ def train_model(save_model=False, model_path="models/people_detection_model.pt")
                 loss = criterion(output, target)
                 valid_loss += loss.item()
 
-        scheduler.step()
+        # scheduler.step()
 
         print(
             f"Epoch: {epoch+1}/{n_epochs}, Train Loss: {train_loss/len(train_dataloader):.6f}, Valid Loss: {valid_loss/len(valid_dataloader):.6f}"
