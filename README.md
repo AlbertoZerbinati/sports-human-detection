@@ -37,7 +37,7 @@ Choose the option that best fits your needs to get started.
 
 ## Report
 
-Ask for permission [here](https://docs.google.com/document/d/1_8SdJ6yfRL37Bn0gcs749Rhd29lRVZCEUC0VRQvNA3Y/edit#heading=h.5wxqaqinvaq4)
+See `CV - Project Report.pdf`. To edit, ask for permission [here](https://docs.google.com/document/d/1_8SdJ6yfRL37Bn0gcs749Rhd29lRVZCEUC0VRQvNA3Y/edit#heading=h.5wxqaqinvaq4)
 
 ---
 
